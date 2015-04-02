@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    region: "us-west-2"
+    environment: "sandbox"
+  vars_prompt:
+    project: "Project name"
+    key: "Name of the ssh key to use"
+  tasks:
+  - name: Nubis Storage
+    cloudformation:
+      stack_name: "{{project}}-storage"
+      region: "{{ region }}"
+      state: "present"
+      disable_rollback: true
+      template: "main.json"
+      template_parameters:
+        KeyName: "{{ key }}"
+    register: stack 
+  - debug: var=stack.stack_outputs
