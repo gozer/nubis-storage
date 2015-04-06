@@ -5,6 +5,8 @@
   vars:
     region: "us-west-2"
     environment: "sandbox"
+    instance_type: "m3.medium"
+    size: "80"
   vars_prompt:
     project: "Project name"
     key: "Name of the ssh key to use"
@@ -18,5 +20,7 @@
       template: "main.json"
       template_parameters:
         KeyName: "{{ key }}"
+        InstanceType: "{{ instance_type }}"
+        VolumeSize: "{{ size }}"
     register: stack 
   - debug: var=stack.stack_outputs
