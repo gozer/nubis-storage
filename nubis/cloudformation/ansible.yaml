@@ -10,6 +10,9 @@
   vars_prompt:
     project: "Project name"
     key: "Name of the ssh key to use"
+    owner: "E-Mail address of the technical owner"
+    vpc: "Id of the VPC to launch into"
+    subnets: "Coma, separated, list, of, subnets"
   tasks:
   - name: Nubis Storage
     cloudformation:
@@ -19,8 +22,12 @@
       disable_rollback: true
       template: "main.json"
       template_parameters:
+        ServiceName: "{{ project }}"
         KeyName: "{{ key }}"
         InstanceType: "{{ instance_type }}"
+        TechnicalOwner: "{{ owner }}"
         VolumeSize: "{{ size }}"
+        VpcId: "{{ vpc }}"
+        Subnets: "{{ subnets }}"
     register: stack 
   - debug: var=stack.stack_outputs
