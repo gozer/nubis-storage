@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Create a Softnas Instance with NFS enabled",
+  "Description": "Create a CEPH Cluster",
   "Parameters": {
     "ServiceName": {
       "Description": "The name of the service this belongs to",
@@ -33,6 +33,10 @@
       "Description": "Name of and existing EC2 KeyPair to enable SSH access to the instance",
       "Type": "String"
     },
+    "AMI": {
+      "Description": "AMI Id",
+      "Type": "String"     
+    },
     "InstanceType": {
       "Description": "Softnas HVM EC2 instance type",
       "Type": "String",
@@ -61,120 +65,63 @@
       "Description": "Size in GB of the volume",
       "Type": "String",
       "Default": "50"
-    }
-  },
-  "Mappings": {
-    "RegionMap": {
-      "us-west-2": {
-        "AMI": "ami-951839a5"
-      },
-      "us-east-1": {
-        "AMI": "ami-f2c2909a"
-      }
+    },
+    "ClusterSize": {
+      "Description": "Members of the cluster, keep an odd number",
+      "Type": "String",
+      "Default": "1"
     }
   },
   "Resources": {
-    "MyEBS1": {
-      "Type": "AWS::EC2::Volume",
-      "Properties": {
-        "Size": {
-          "Ref": "VolumeSize"
-        },
-        "AvailabilityZone": {
-          "Fn::Select": [
-            "0",
-            {
-              "Fn::GetAZs": ""
-            }
-          ]
-        }
-      }
-    },
-    "MyEBS2": {
-      "Type": "AWS::EC2::Volume",
-      "Properties": {
-        "Size": {
-          "Ref": "VolumeSize"
-        },
-        "AvailabilityZone": {
-          "Fn::Select": [
-            "0",
-            {
-              "Fn::GetAZs": ""
-            }
-          ]
-        }
-      }
-    },
-    "SoftnasSecurityGroup": {
+    "CephSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "Enable SSH access via port 22",
+        "GroupDescription": "Inter-Server communication",
         "VpcId": {
           "Ref": "VpcId"
         },
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
-            "FromPort": "22",
-            "ToPort": "22",
-            "CidrIp": "0.0.0.0/0"
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "80",
-            "ToPort": "80",
-            "CidrIp": "0.0.0.0/0"
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "443",
-            "ToPort": "443",
-            "CidrIp": "0.0.0.0/0"
+            "FromPort": "0",
+            "ToPort": "65535"
           }
         ]
       }
     },
+    "CephSecurityGroupIngress": {
+      "Type" : "AWS::EC2::SecurityGroupIngress",
+      "Properties" : {
+             "GroupId" : { "Ref" : "CephSecurityGroup" },
+             "IpProtocol" : "tcp",
+             "ToPort" : "65535",
+             "FromPort" : "0",
+             "SourceSecurityGroupId" : { "Ref" : "CephSecurityGroup" }
+         },
+         "DependsOn" : "CephSecurityGroup"
+    },
     "LaunchConfig": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
-        "ImageId": {
-          "Fn::FindInMap": [
-            "RegionMap",
-            {
-              "Ref": "AWS::Region"
-            },
-            "AMI"
-          ]
-        },
+        "ImageId": { "Ref": "AMI" },
         "SecurityGroups": [
           {
-            "Ref": "SoftnasSecurityGroup"
+            "Ref": "CephSecurityGroup"
           }
         ],
         "InstanceType": {
           "Ref": "InstanceType"
         },
-	"IamInstanceProfile" : "packer-PackerInstanceProfile-FZ44D2NHGOZI",
         "KeyName": {
           "Ref": "KeyName"
         },
+	"BlockDeviceMappings" : [ {
+            "DeviceName" : "/dev/sdk",
+            "Ebs" : {"VolumeSize" :  { "Ref": "VolumeSize" } }
+         }],
         "UserData": { "Fn::Base64": { "Fn::Join": [ "", [
 	   "#!/bin/bash -ex \n",
-	   "echo 'XXX Starting' \n",
-	   "INSID=`curl http://169.254.169.254/latest/meta-data/instance-id` \n",
-	   "REGION=", { "Ref": "AWS::Region" }, " \n",
-	   "/usr/bin/aws ec2 --region $REGION attach-volume --instance-id $INSID --device /dev/xvdj --volume-id ", { "Ref": "MyEBS1" }, "\n",
-	   "/usr/bin/aws ec2 --region $REGION attach-volume --instance-id $INSID --device /dev/xvdk --volume-id ", { "Ref": "MyEBS2" }, "\n",
-	   "/var/www/softnas/scripts/initproc.sh \n",
-	   "service httpd start \n",
-	   "wget http://www.softnas.com/docs/softnas/v2/api/softnas-cmd.zip \n",
-	   "unzip softnas-cmd.zip \n",
-	   "mv softnas-cmd /usr/local/bin/ \n",
-	   "chmod 755 /usr/local/bin/softnas-cmd \n",
-	   "/usr/local/bin/softnas-cmd login softnas $INSID --base_url https://localhost/softnas --pretty_print \n",
-	   "/usr/local/bin/softnas-cmd createpool /dev/xvdj:/dev/xvdk storage 1 on -t \n",
-	   "/usr/local/bin/softnas-cmd createvolume data storage filesystem thin exportNFS=on shareCIFS=off dedup=on enable_snapshot=on schedule_name=Default hourlysnaps=5 dailysnaps=10 weeklysnaps=0 -t \n"
+	   "echo 'XXX Starting' \n"
 	]]}}
       }
     },
@@ -192,31 +139,21 @@
         }
       },
       "Properties": {
-        "AvailabilityZones": [{
-          "Fn::Select": [
-            "0",
-            {
-              "Fn::GetAZs": ""
-            }
-          ]
-        }],
-        "VPCZoneIdentifier": [
-          {
-            "Fn::Select": [
-              "0",
-              {
-                "Ref": "Subnets"
-              }
-            ]
-          }
-        ],
+        "AvailabilityZones": { "Fn::GetAZs": "" },
+        "VPCZoneIdentifier": { "Ref": "Subnets" },
+	"Cooldown": 30,
         "LaunchConfigurationName": {
           "Ref": "LaunchConfig"
         },
-        "MinSize": "1",
-        "DesiredCapacity": "1",
-        "MaxSize": "2",
+        "MinSize": { "Ref": "ClusterSize" },
+        "DesiredCapacity": { "Ref": "ClusterSize" },
+        "MaxSize": { "Ref": "ClusterSize" },
         "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": [ "", [ "Nubis Storage Node (", { "Ref": "ServiceName" }, ")" ]]  },
+            "PropagateAtLaunch": "true"
+          },
           {
             "Key": "ServiceName",
             "Value": {
