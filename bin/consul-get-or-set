@@ -11,7 +11,7 @@ my $ua =  LWP::UserAgent::Determined->new();
 my $path = shift @ARGV;
 
 my $url = URI->new($path);
-if (not $url->has_recognized_scheme) {
+if (not $url->scheme) {
   $url = URI->new("http://localhost:8500/v1/kv$path");
 }
 

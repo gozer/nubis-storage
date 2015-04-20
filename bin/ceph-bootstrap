@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+eval `ec2metadata --user-data`
+
+CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_PROJECT/$NUBIS_ENVIRONMENT/storage/fsid uuidgen`
+
+mkfs.xfs -f /dev/xvdk
+mount /dev/xvdk /var/lib/ceph
+mkdir -p /var/lib/ceph/mon /var/lib/ceph/osd
+
+LOCAL_IP=`ec2metadata --local-ipv4`
+LOCAL_HOSTNAME=`hostname -s`
+INSTANCE_ID=` ec2metadata --instance-id`
+
+cat << EOF > /etc/ceph/ceph.conf
+[global]
+fsid = $CEPH_FSID
+
+auth cluster required = none
+auth service required = none
+auth client required = none
+
+osd pool default pg num = 256
+osd pool default pgp num = 256
+
+osd pool default size = 3     # Write an object n times.
+osd pool default min size = 2 # Allow writing n copy in a degraded state.
+
+mon host = $LOCAL_IP
+
+[mon.$INSTANCE_ID]
+  host = $LOCAL_HOSTNAME
+
+[mds.$INSTANCE_ID]
+  host = $LOCAL_HOSTNAME
+EOF
+
+ceph-mon -i $INSTANCE_ID --mkfs
+
+service ceph start
+
+cat << EOF > /etc/consul/svc-ceph.json
+{
+  "service": {
+    "name": "ceph",
+    "tags": ["ceph","ceph-fsid-$CEPH_FSID"],
+
+    "check": {
+      "script": "ceph status -f json",
+      "interval": "60s"
+    }
+  }
+}
+
+EOF
+
+cat << EOF > /etc/consul/svc-ceph-mon.json
+{
+  "service": {
+    "name": "ceph-mon",
+    "tags": ["ceph-mon","ceph-fsid-$CEPH_FSID", "ceph-storage-$NUBIS_PROJECT" ],
+    "port": 6789,
+    "check": {
+      "script": "ceph mon dump -f json",
+      "interval": "60s"
+    }
+  }
+}
+
+EOF
+
+cat << EOF > /etc/consul/svc-ceph-mds.json
+{
+  "service": {
+    "name": "ceph-mds",
+    "tags": ["ceph-mds","ceph-fsid-$CEPH_FSID"],
+    "check": {
+      "script": "ceph mds dump -f json",
+      "interval": "60s"
+    }
+  }
+}
+
+EOF
+
+service consul reload
+
+ceph osd pool create cephfs_data 64
+ceph osd pool create cephfs_metadata 64
+ceph fs new cephfs cephfs_metadata cephfs_data
