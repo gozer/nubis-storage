@@ -70,6 +70,14 @@
       "Description": "Members of the cluster, keep an odd number",
       "Type": "String",
       "Default": "1"
+    },
+    "InternetAccessSecurityGroup": {
+      "Description": "Internet Access Security Group ID",
+      "Type": "String"
+    },
+    "SSSG": {
+      "Description": "SSSG Security Group ID",
+      "Type": "String"
     }
   },
   "Resources": {
@@ -107,7 +115,13 @@
         "SecurityGroups": [
           {
             "Ref": "CephSecurityGroup"
-          }
+          },
+	  {
+	    "Ref": "SSSG"
+	  },
+	  {
+	    "Ref": "InternetAccessSecurityGroup"
+	  }
         ],
         "InstanceType": {
           "Ref": "InstanceType"
@@ -120,8 +134,9 @@
             "Ebs" : {"VolumeSize" :  { "Ref": "VolumeSize" } }
          }],
         "UserData": { "Fn::Base64": { "Fn::Join": [ "", [
-	   "#!/bin/bash -ex \n",
-	   "echo 'XXX Starting' \n"
+	   "NUBIS_DOMAIN=nubis.allizom.org\n",
+	   "NUBIS_ENVIRONMENT=", { "Ref": "Environment" } ,"\n",
+	   "NUBIS_PROJECT=", { "Ref": "ServiceName" } ,"\n"
 	]]}}
       }
     },
