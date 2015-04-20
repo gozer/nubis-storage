@@ -1,0 +1,24 @@
+{
+  {
+    "type": "file",
+    "source": "bin/ceph-bootstrap",
+    "destination": "/tmp/ceph-bootstrap",
+    "order": 21
+  },
+  {
+    "type": "file",
+    "source": "bin/consul-get-or-set",
+    "destination": "/tmp/consul-get-or-set",
+    "order": 22
+  }
+  {
+    "type": "shell",
+      "inline": [
+        "sudo mv /tmp/consul-get-or-set /usr/local/bin/",
+        "sudo chmod 755 /usr/local/bin/consul-get-or-set",
+        "sudo mv /tmp/ceph-bootstrap /etc/nubis.d/99-ceph-bootstrap",
+	"sudo chmod 755 /etc/nubis.d/99-ceph-bootstrap"
+      ],
+    "order": 30
+  }
+}
