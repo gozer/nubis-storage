@@ -37,7 +37,7 @@ EOF
 
 ceph-mon -i $INSTANCE_ID --mkfs
 
-service ceph start
+service ceph start mon
 
 cat << EOF > /etc/consul/svc-ceph.json
 {
@@ -46,7 +46,7 @@ cat << EOF > /etc/consul/svc-ceph.json
     "tags": ["ceph","ceph-fsid-$CEPH_FSID"],
 
     "check": {
-      "script": "ceph status -f json",
+      "script": "ceph status",
       "interval": "60s"
     }
   }
@@ -61,7 +61,7 @@ cat << EOF > /etc/consul/svc-ceph-mon.json
     "tags": ["ceph-mon","ceph-fsid-$CEPH_FSID", "ceph-storage-$NUBIS_PROJECT" ],
     "port": 6789,
     "check": {
-      "script": "ceph mon dump -f json",
+      "script": "ceph mon dump",
       "interval": "60s"
     }
   }
@@ -75,7 +75,7 @@ cat << EOF > /etc/consul/svc-ceph-mds.json
     "name": "ceph-mds",
     "tags": ["ceph-mds","ceph-fsid-$CEPH_FSID"],
     "check": {
-      "script": "ceph mds dump -f json",
+      "script": "ceph mds dump",
       "interval": "60s"
     }
   }
@@ -83,8 +83,65 @@ cat << EOF > /etc/consul/svc-ceph-mds.json
 
 EOF
 
-service consul reload
-
 ceph osd pool create cephfs_data 64
 ceph osd pool create cephfs_metadata 64
 ceph fs new cephfs cephfs_metadata cephfs_data
+
+cat << EOF > /etc/init/consul-ceph-mon.conf
+description     "Consul Ceph Monitor"
+respawn
+
+script
+    exec /usr/local/bin/consul-ceph-mon /$NUBIS_PROJECT/$NUBIS_ENVIRONMENT/storage/mon
+end script
+EOF
+
+service consul-ceph-mon start
+
+# At this point, the cluster of monitors will start assembling, but we
+# need to wait until we've reached quorum before we proceed, otherwise
+# we'd end up with monitors that have a colliding view of OSDs
+# So, we wait until we see at least the same amount number of monitors
+# as we were configured with
+
+MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length'`
+
+while [ $MON_COUNT -lt $NUBIS_STORAGE_CLUSTER_SIZE ]; do
+ MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length'`
+ sleep 1
+done
+
+#XXX: Might want to use Consul to coordinate this and ensure 100%
+#XXX: correctness
+
+OSD_ID=`ceph osd create`
+mkdir -p /var/lib/ceph/osd/ceph-$OSD_ID
+ceph-osd -i $OSD_ID --mkfs
+
+echo "[osd.$OSD_ID]" >> /etc/ceph/ceph.conf
+echo "    host = $LOCAL_HOSTNAME" >> /etc/ceph/ceph.conf
+
+service ceph start
+
+cat << EOF > /etc/consul/svc-ceph-osd.json
+{
+  "service": {
+    "name": "ceph-osd",
+    "tags": ["ceph-osd", "ceph-osd-$OSD_ID", "ceph-fsid-$CEPH_FSID"],
+    "check": {
+      "script": "ceph osd dump",
+      "interval": "60s"
+    }
+  }
+}
+EOF
+
+service consul reload
+
+# Install an hourly dead OSD reaper
+# XXX: This can be baked in, just need to lookup project and stuff
+cat << EOF > /etc/cron.hourly/ceph-osd-reap
+#!/usr/bin/bash
+
+/usr/local/bin/consul-do $NUBIS_PROJECT/$NUBIS_ENVIRONMENT/storage/osd-reap $(ec2metadata --instance-id) && /usr/local/bin/ceph-osd-reaper
+EOF

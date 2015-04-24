@@ -1,24 +1,40 @@
 {
-  {
-    "type": "file",
-    "source": "bin/ceph-bootstrap",
-    "destination": "/tmp/ceph-bootstrap",
-    "order": 21
-  },
-  {
-    "type": "file",
-    "source": "bin/consul-get-or-set",
-    "destination": "/tmp/consul-get-or-set",
-    "order": 22
-  }
-  {
-    "type": "shell",
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "bin/ceph-bootstrap",
+      "destination": "/tmp/ceph-bootstrap",
+      "order": 21
+    },
+    {
+      "type": "file",
+      "source": "bin/consul-get-or-set",
+      "destination": "/tmp/consul-get-or-set",
+      "order": 22
+    },
+    {
+      "type": "file",
+      "source": "bin/consul-ceph-mon",
+      "destination": "/tmp/consul-ceph-mon",
+      "order": 23
+    },
+    {
+      "type": "file",
+      "source": "bin/ceph-osd-reaper",
+      "destination": "/tmp/ceph-osd-reaper",
+      "order": 24
+    },
+    {
+      "type": "shell",
       "inline": [
-        "sudo mv /tmp/consul-get-or-set /usr/local/bin/",
-        "sudo chmod 755 /usr/local/bin/consul-get-or-set",
+        "sudo mv /tmp/consul-get-or-set /tmp/consul-ceph-mon /tmp/ceph-osd-reaper /usr/local/bin/",
+        "sudo chmod 755 /usr/local/bin/consul-get-or-set /usr/local/bin/consul-ceph-mon /usr/local/bin/ceph-osd-reaper",
         "sudo mv /tmp/ceph-bootstrap /etc/nubis.d/99-ceph-bootstrap",
-	"sudo chmod 755 /etc/nubis.d/99-ceph-bootstrap"
+        "sudo chmod 755 /etc/nubis.d/99-ceph-bootstrap",
+	"sudo wget -O/usr/local/bin/consul-do https://raw.githubusercontent.com/zeroXten/consul-do/master/consul-do",
+	"sudo chmod 755 /usr/local/bin/consul-do"
       ],
-    "order": 30
-  }
+      "order": 30
+    }
+  ]
 }

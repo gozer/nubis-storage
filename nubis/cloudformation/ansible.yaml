@@ -12,9 +12,8 @@
     project: "Project name"
     key: "Name of the ssh key to use"
     owner: "E-Mail address of the technical owner"
-    vpc: "Id of the VPC to launch into"
-    subnets: "Coma, separated, list, of, subnets"
     ami: "AMI Id"
+    client_security_group: "Security Group ID of storage clients"
   tasks:
   - name: Discover SSSG Id
     action: uri url=http://ui.{{ region }}.consul.{{ env }}.nubis.allizom.org/v1/kv/environments/{{ env }}/global/aws/sssg_security_group?raw return_content=yes
@@ -30,16 +29,15 @@
       disable_rollback: true
       template: "main.json"
       template_parameters:
-        ServiceName: "{{ project }}"
+        ProjectName: "{{ project }}"
         KeyName: "{{ key }}"
         InstanceType: "{{ instance_type }}"
         TechnicalOwner: "{{ owner }}"
         VolumeSize: "{{ size }}"
         ClusterSize: "{{ cluster_size }}"
-        VpcId: "{{ vpc }}"
-        Subnets: "{{ subnets }}"
         AMI: "{{ ami }}"
         InternetAccessSecurityGroup: "{{ internet_access_security_group.content }}"
         SSSG: "{{ sssg_security_group.content }}"
+        ClientSecurityGroup: "{{ client_security_group }}"
     register: stack 
   - debug: var=stack.stack_outputs

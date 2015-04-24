@@ -10,7 +10,7 @@ class ceph::repo (
 
       apt::key { 'ceph':
         ensure     => $ensure,
-        key        => '17ED316D',
+        key        => '7F6C9F236D170493FCF404F27EBFDD5D17ED316D',
         key_source => 'http://git.ceph.com/?p=ceph.git;a=blob_plain;f=keys/release.asc',
       }
 
