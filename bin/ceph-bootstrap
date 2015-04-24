@@ -104,10 +104,10 @@ service consul-ceph-mon start
 # So, we wait until we see at least the same amount number of monitors
 # as we were configured with
 
-MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length'`
+MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length' || echo -1`
 
 while [ $MON_COUNT -lt $NUBIS_STORAGE_CLUSTER_SIZE ]; do
- MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length'`
+ MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length' || echo -1`
  sleep 1
 done
 
