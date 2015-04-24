@@ -127,7 +127,7 @@ cat << EOF > /etc/consul/svc-ceph-osd.json
 {
   "service": {
     "name": "ceph-osd",
-    "tags": ["ceph-osd", "ceph-osd-$OSD_ID", "ceph-fsid-$CEPH_FSID"],
+    "tags": ["ceph-osd", "ceph-osd-$CEPH_FSID-$OSD_ID", "ceph-fsid-$CEPH_FSID"],
     "check": {
       "script": "ceph osd dump",
       "interval": "60s"
