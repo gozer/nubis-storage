@@ -25,10 +25,6 @@
       "Description": "Name of and existing EC2 KeyPair to enable SSH access to the instance",
       "Type": "String"
     },
-    "AMI": {
-      "Description": "AMI Id",
-      "Type": "String"
-    },
     "InstanceType": {
       "Description": "Softnas HVM EC2 instance type",
       "Type": "String",
@@ -63,18 +59,20 @@
       "Type": "String",
       "Default": "1"
     },
-    "ClientSecurityGroup": {
+    "EC2SecurityGroup": {
       "Description": "The security group ID of clients of this cluster",
       "Type": "String"
-    },
-    "InternetAccessSecurityGroup": {
-      "Description": "Internet Access Security Group ID",
-      "Type": "String"
-    },
-    "SSSG": {
-      "Description": "SSSG Security Group ID",
-      "Type": "String"
     }
+  },
+  "Mappings" : {
+   "AMIs" : {
+    "us-west-2" : {
+      "AMI" : "ami-75f3c745"
+    },
+    "us-east-1" : {
+      "AMI" : "ami-a6aaabce"
+    }
+   }
   },
   "Resources": {
     "VpcInfo": {
@@ -124,7 +122,7 @@
       },
       "DependsOn": "CephSecurityGroup"
     },
-    "ClientSecurityGroupIngress": {
+    "EC2SecurityGroupIngress": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
@@ -134,7 +132,7 @@
         "ToPort": "6810",
         "FromPort": "6789",
         "SourceSecurityGroupId": {
-          "Ref": "ClientSecurityGroup"
+          "Ref": "EC2SecurityGroup"
         }
       },
       "DependsOn": "CephSecurityGroup"
@@ -143,17 +141,23 @@
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
         "ImageId": {
-          "Ref": "AMI"
+          "Fn::FindInMap" : [ "AMIs", { "Ref" : "AWS::Region" }, "AMI"]
         },
         "SecurityGroups": [
           {
             "Ref": "CephSecurityGroup"
           },
           {
-            "Ref": "SSSG"
+            "Fn::GetAtt": [
+              "VpcInfo",
+              "InternetAccessSecurityGroupId"
+            ]
           },
           {
-            "Ref": "InternetAccessSecurityGroup"
+            "Fn::GetAtt": [
+              "VpcInfo",
+              "SharedServicesSecurityGroupId"
+            ]
           }
         ],
         "InstanceType": {
