@@ -1,0 +1,109 @@
+#!/usr/bin/env perl
+
+use strict;
+
+$SIG{INT} = sub { exit };
+
+use URI;
+use JSON qw(decode_json encode_json);
+use MIME::Base64 qw(decode_base64);
+use Sys::Hostname qw(hostname);
+use Socket;
+use Data::Dumper;
+
+use LWP::UserAgent::Determined;
+my $ua =  LWP::UserAgent::Determined->new();
+$ua->timeout(300);
+
+my $consul = "http://localhost:8500";
+
+my $path = shift @ARGV;
+
+my $url = URI->new($path);
+if (not $url->scheme) {
+  $url = URI->new("$consul/v1/kv$path");
+}
+
+my $session = $ua->put("$consul/v1/session/create", Content => encode_json({ Behavior => "delete" }));
+my $session_decoded = decode_json($session->content);
+my $session_id = $session_decoded->{ID};
+
+my $hostname = hostname;
+my($addr)=inet_ntoa((gethostbyname(hostname))[4]);
+
+my $instance_check = $ua->get("http://169.254.169.254/latest/meta-data/instance-id");
+if ($instance_check->is_success) {
+  $hostname = $instance_check->content;
+}
+
+my $node_path = "$consul/v1/kv$path/$hostname";
+
+my $register = $ua->put("$node_path?acquire=$session_id", Content => encode_json({ name => $hostname, address => $addr }) );
+
+if (!$register->is_success()) {
+  warn "Couldn't register node at $node_path";
+  warn Dumper($register);
+  exit;
+}
+
+my $run = 1;
+my $last_index = 0;
+while($run) {
+  my $list = $ua->get("$consul/v1/kv$path?recurse=1&index=$last_index");
+  
+  if (!$list->is_success()) {
+    
+    if ($list->status_line !~ /timeout/i ) {
+      warn "Retrieving node list failed from $consul/v1/kv$path?recurse=1&index=$last_index";
+      warn Dumper($list); use Data::Dumper;
+    }
+    
+    next;
+  }
+  
+  my $data = decode_json($list->content);
+  $last_index = $list->header("X-Consul-Index");
+  
+  my %mons;
+  my $mon_dump = `ceph -f json mon dump`;
+  
+  my $mons = decode_json($mon_dump);
+  
+  foreach my $mon (@{$mons->{mons}}) {
+    # don't include ourselves
+    next if $mon->{name} eq $hostname;
+    $mons{$mon->{name}} = 1;
+  }
+  
+  foreach my $node (sort { $a->{'ModifyIndex'} <=> $b->{'ModifyIndex'} } @$data) {
+    my $value = decode_base64($node->{Value});
+    my $decoded = decode_json($value);
+    
+    my $name = $decoded->{name};
+    my $addr = $decoded->{address};
+    
+    # don't include ourselves, like, ever
+    next if $name eq $hostname;
+    
+    if (exists $mons{$name}) {
+      warn "Already known mon $name";
+    }
+    else {
+      print "ADD $name $addr\n";
+    
+      # Add node, in case
+      system("ceph mon add $decoded->{name} $decoded->{address}");
+    }
+    
+    delete $mons{$name};
+  }
+  
+  foreach my $node (sort keys %mons) {
+    print "DEL $node\n";
+    system("ceph mon remove $node");
+  }
+}
+
+END {
+  $ua->put("$consul/v1/session/destroy/$session_id");
+}

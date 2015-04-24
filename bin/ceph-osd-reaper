@@ -1,0 +1,4 @@
+for osd in `ceph osd dump -f json | jq '.osds[] | select(.state[0] | contains("out")) | .osd'`; do
+  ceph osd crush remove osd.$osd
+  ceph osd rm osd.$osd
+done
