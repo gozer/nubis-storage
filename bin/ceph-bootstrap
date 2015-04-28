@@ -104,10 +104,10 @@ service consul-ceph-mon start
 # So, we wait until we see at least the same amount number of monitors
 # as we were configured with
 
-MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length'`
+MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length' || echo -1`
 
 while [ $MON_COUNT -lt $NUBIS_STORAGE_CLUSTER_SIZE ]; do
- MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length'`
+ MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length' || echo -1`
  sleep 1
 done
 
@@ -127,7 +127,7 @@ cat << EOF > /etc/consul/svc-ceph-osd.json
 {
   "service": {
     "name": "ceph-osd",
-    "tags": ["ceph-osd", "ceph-osd-$OSD_ID", "ceph-fsid-$CEPH_FSID"],
+    "tags": ["ceph-osd", "ceph-osd-$CEPH_FSID-$OSD_ID", "ceph-fsid-$CEPH_FSID"],
     "check": {
       "script": "ceph osd dump",
       "interval": "60s"
@@ -141,7 +141,9 @@ service consul reload
 # Install an hourly dead OSD reaper
 # XXX: This can be baked in, just need to lookup project and stuff
 cat << EOF > /etc/cron.hourly/ceph-osd-reap
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 /usr/local/bin/consul-do $NUBIS_PROJECT/$NUBIS_ENVIRONMENT/storage/osd-reap $(ec2metadata --instance-id) && /usr/local/bin/ceph-osd-reaper
 EOF
+
+chmod +x /etc/cron.hourly/ceph-osd-reap
