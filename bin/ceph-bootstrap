@@ -141,7 +141,9 @@ service consul reload
 # Install an hourly dead OSD reaper
 # XXX: This can be baked in, just need to lookup project and stuff
 cat << EOF > /etc/cron.hourly/ceph-osd-reap
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 /usr/local/bin/consul-do $NUBIS_PROJECT/$NUBIS_ENVIRONMENT/storage/osd-reap $(ec2metadata --instance-id) && /usr/local/bin/ceph-osd-reaper
 EOF
+
+chmod +x /etc/cron.hourly/ceph-osd-reap
