@@ -6,7 +6,7 @@ CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_PROJECT/$NUBIS_ENVIRONMENT/s
 
 mkfs.xfs -f /dev/xvdk
 mount /dev/xvdk /var/lib/ceph
-mkdir -p /var/lib/ceph/mon /var/lib/ceph/osd
+mkdir -p /mnt/ceph/mon /var/lib/ceph/osd
 
 LOCAL_IP=`ec2metadata --local-ipv4`
 LOCAL_HOSTNAME=`hostname -s`
@@ -27,6 +27,7 @@ osd pool default size = 3     # Write an object n times.
 osd pool default min size = 2 # Allow writing n copy in a degraded state.
 
 mon host = $LOCAL_IP
+mon data = /mnt/ceph/mon/$cluster-$id
 
 [mon.$INSTANCE_ID]
   host = $LOCAL_HOSTNAME
