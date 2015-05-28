@@ -1,4 +1,5 @@
 import "ceph.pp"
+import "fluentd.pp"
 
 class { 'ceph::repo':
 }
