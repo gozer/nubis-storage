@@ -19,3 +19,7 @@ package { 'libjson-perl':
 package { 'liblwp-useragent-determined-perl':
   ensure => present,
 }
+
+package { 'liblog-log4perl-perl':
+  ensure => present,
+}
