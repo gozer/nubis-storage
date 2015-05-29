@@ -2,6 +2,10 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Nubis Storage Ceph Cluster",
   "Parameters": {
+    "StackName": {
+      "Description": "Name of the parent stack",
+      "Type": "String"
+    },
     "ServiceName": {
       "Description": "The name of the service this belongs to",
       "Type": "String"
@@ -64,21 +68,37 @@
       "Type": "String"
     }
   },
-  "Mappings" : {
-   "AMIs" : {
-    "us-west-2" : {
-      "AMI" : "ami-932c1aa3"
-    },
-    "us-east-1" : {
-      "AMI" : "ami-9c505ef4"
+  "Mappings": {
+    "AMIs": {
+      "us-west-2": {
+        "AMI": "ami-0d201f3d"
+      },
+      "us-east-1": {
+        "AMI": "ami-9b0beaf0"
+      }
     }
-   }
   },
   "Resources": {
     "VpcInfo": {
       "Type": "Custom::VpcInfo",
       "Properties": {
-        "ServiceToken": { "Fn::Join": [ "", [ "arn:aws:lambda:", { "Ref": "AWS::Region" }, ":", { "Ref": "AWS::AccountId" }, ":function:", "LookupStackOutputs" ] ] },
+        "ServiceToken": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:lambda:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":function:",
+              "LookupStackOutputs"
+            ]
+          ]
+        },
         "StackName": {
           "Fn::Join": [
             "-",
@@ -141,7 +161,13 @@
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
         "ImageId": {
-          "Fn::FindInMap" : [ "AMIs", { "Ref" : "AWS::Region" }, "AMI"]
+          "Fn::FindInMap": [
+            "AMIs",
+            {
+              "Ref": "AWS::Region"
+            },
+            "AMI"
+          ]
         },
         "SecurityGroups": [
           {
@@ -185,6 +211,19 @@
                 "NUBIS_ENVIRONMENT=",
                 {
                   "Ref": "Environment"
+                },
+                "\n",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "NUBIS_STACK='",
+                      {
+                        "Ref": "StackName"
+                      },
+                      "'"
+                    ]
+                  ]
                 },
                 "\n",
                 "NUBIS_PROJECT=",

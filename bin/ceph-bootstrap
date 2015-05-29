@@ -2,7 +2,7 @@
 
 eval `ec2metadata --user-data`
 
-CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_PROJECT/$NUBIS_ENVIRONMENT/storage/fsid uuidgen`
+CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/fsid uuidgen`
 
 mkfs.xfs -f /dev/xvdk
 mount /dev/xvdk /var/lib/ceph
@@ -59,7 +59,7 @@ cat << EOF > /etc/consul/svc-ceph-mon.json
 {
   "service": {
     "name": "ceph-mon",
-    "tags": ["ceph-mon","ceph-fsid-$CEPH_FSID", "ceph-storage-$NUBIS_PROJECT" ],
+    "tags": ["ceph-mon","ceph-fsid-$CEPH_FSID", "ceph-storage-$NUBIS_STACK" ],
     "port": 6789,
     "check": {
       "script": "ceph mon dump",
@@ -93,7 +93,7 @@ description     "Consul Ceph Monitor"
 respawn
 
 script
-    exec /usr/local/bin/consul-ceph-mon /$NUBIS_PROJECT/$NUBIS_ENVIRONMENT/storage/mon
+    exec /usr/local/bin/consul-ceph-mon /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/mon
 end script
 EOF
 
@@ -144,7 +144,7 @@ service consul reload
 cat << EOF > /etc/cron.hourly/ceph-osd-reap
 #!/usr/bin/env bash
 
-/usr/local/bin/consul-do $NUBIS_PROJECT/$NUBIS_ENVIRONMENT/storage/osd-reap $(ec2metadata --instance-id) && /usr/local/bin/ceph-osd-reaper
+/usr/local/bin/consul-do $NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/osd-reap $(ec2metadata --instance-id) && /usr/local/bin/ceph-osd-reaper
 EOF
 
 chmod +x /etc/cron.hourly/ceph-osd-reap
