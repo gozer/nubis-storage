@@ -23,6 +23,7 @@
       template: "main.json"
       template_parameters:
         ServiceName: "{{ project }}"
+        StackName: "{{project}}-storage"
         KeyName: "{{ key }}"
         InstanceType: "{{ instance_type }}"
         TechnicalOwner: "{{ owner }}"
