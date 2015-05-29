@@ -5,8 +5,6 @@ use strict;
 use Log::Log4perl qw(:easy);
 Log::Log4perl->easy_init($INFO);
 
-$SIG{INT} = sub { exit };
-
 use URI;
 use JSON qw(decode_json encode_json);
 use MIME::Base64 qw(decode_base64);
@@ -38,6 +36,9 @@ my $instance_check = $ua->get("http://169.254.169.254/latest/meta-data/instance-
 if ($instance_check->is_success) {
   $hostname = $instance_check->content;
 }
+
+# Create the pseudo-folder *without* a session
+$ua->put("$consul/v1/kv$path/");
 
 my $node_path = "$consul/v1/kv$path/$hostname";
 
@@ -103,9 +104,4 @@ while($run) {
     INFO "DEL $node\n";
     system("ceph mon remove $node");
   }
-}
-
-END {
-  INFO "Clearing session";
-  $ua->put("$consul/v1/session/destroy/$session_id");
 }
