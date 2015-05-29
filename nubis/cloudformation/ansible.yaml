@@ -22,12 +22,12 @@
       disable_rollback: true
       template: "main.json"
       template_parameters:
-        ProjectName: "{{ project }}"
+        ServiceName: "{{ project }}"
         KeyName: "{{ key }}"
         InstanceType: "{{ instance_type }}"
         TechnicalOwner: "{{ owner }}"
         VolumeSize: "{{ size }}"
         ClusterSize: "{{ cluster_size }}"
-        ClientSecurityGroup: "{{ client_security_group }}"
+        EC2SecurityGroup: "{{ client_security_group }}"
     register: stack 
   - debug: var=stack.stack_outputs
