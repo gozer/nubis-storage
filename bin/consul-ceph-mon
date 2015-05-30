@@ -5,8 +5,6 @@ use strict;
 use Log::Log4perl qw(:easy);
 Log::Log4perl->easy_init($INFO);
 
-$SIG{INT} = sub { exit };
-
 use URI;
 use JSON qw(decode_json encode_json);
 use MIME::Base64 qw(decode_base64);
@@ -27,7 +25,8 @@ if (not $url->scheme) {
   $url = URI->new("$consul/v1/kv$path");
 }
 
-my $session = $ua->put("$consul/v1/session/create", Content => encode_json({ Behavior => "delete" }));
+# XXX: Should look at /v1/session/node/$node_id and possibly re-use/renew our session
+my $session = $ua->put("$consul/v1/session/create", Content => encode_json({ Name => "ceph-mon", Behavior => "delete" }));
 my $session_decoded = decode_json($session->content);
 my $session_id = $session_decoded->{ID};
 
@@ -38,6 +37,9 @@ my $instance_check = $ua->get("http://169.254.169.254/latest/meta-data/instance-
 if ($instance_check->is_success) {
   $hostname = $instance_check->content;
 }
+
+# Create the pseudo-folder *without* a session if it doesn't already exists
+$ua->put("$consul/v1/kv$path/?cas=0");
 
 my $node_path = "$consul/v1/kv$path/$hostname";
 
@@ -66,7 +68,7 @@ while($run) {
   $last_index = $list->header("X-Consul-Index");
   
   my %mons;
-  my $mon_dump = `ceph --connect-timeout 2 -f json mon dump`;
+  my $mon_dump = `ceph --connect-timeout 15 -f json mon dump`;
   
   my $mons = decode_json($mon_dump);
   
@@ -77,6 +79,9 @@ while($run) {
   }
   
   foreach my $node (sort { $a->{'ModifyIndex'} <=> $b->{'ModifyIndex'} } @$data) {
+    # Skip the mon/ node itself, it's just a placeholder
+    next if not defined $node->{Value};
+
     my $value = decode_base64($node->{Value});
     my $decoded = decode_json($value);
     
@@ -103,9 +108,4 @@ while($run) {
     INFO "DEL $node\n";
     system("ceph mon remove $node");
   }
-}
-
-END {
-  INFO "Clearing session";
-  $ua->put("$consul/v1/session/destroy/$session_id");
 }
