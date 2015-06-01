@@ -26,8 +26,7 @@ osd pool default pgp num = 256
 osd pool default size = 3     # Write an object n times.
 osd pool default min size = 2 # Allow writing n copy in a degraded state.
 
-# Use ourselves first, then fallback to service lookup
-mon host = $LOCAL_IP, ceph-fsid-${CEPH_FSID}.ceph-mon.service.consul
+mon host = $LOCAL_IP
 mon data = /mnt/ceph/mon/\$cluster-\$id
 
 [mon.$INSTANCE_ID]
