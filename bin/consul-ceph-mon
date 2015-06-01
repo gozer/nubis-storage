@@ -12,6 +12,8 @@ use Sys::Hostname qw(hostname);
 use Socket;
 use Data::Dumper;
 
+my $ceph_timeout = 15;
+
 use LWP::UserAgent::Determined;
 my $ua =  LWP::UserAgent::Determined->new();
 $ua->timeout(300);
@@ -64,13 +66,27 @@ while($run) {
     next;
   }
   
-  my $data = decode_json($list->content);
+  my $data = eval { decode_json($list->content); };
+  if ($@ || not defined $data) {
+    WARN "Failed decoding JSON: $@";
+    next;
+  }
+
   $last_index = $list->header("X-Consul-Index");
   
   my %mons;
-  my $mon_dump = `ceph --connect-timeout 15 -f json mon dump`;
-  
-  my $mons = decode_json($mon_dump);
+  my $mon_dump = `ceph --connect-timeout $ceph_timeout -f json mon dump`;
+
+  if (0 != $?) {
+    WARN "Failed executing ceph mon dump: $? $!";
+    next;
+  }
+
+  my $mons = eval { decode_json($mon_dump); };
+  if ($@ or not defined $mons) {
+    WARN "Failed decoding JSON: $@";
+    next;
+  }
   
   foreach my $mon (@{$mons->{mons}}) {
     # don't include ourselves
@@ -78,12 +94,20 @@ while($run) {
     $mons{$mon->{name}} = 1;
   }
   
+  INFO "Locally known mons are : " . join(",", sort keys %mons);
+  
   foreach my $node (sort { $a->{'ModifyIndex'} <=> $b->{'ModifyIndex'} } @$data) {
     # Skip the mon/ node itself, it's just a placeholder
     next if not defined $node->{Value};
 
-    my $value = decode_base64($node->{Value});
-    my $decoded = decode_json($value);
+    #XXX: Need to handle bogus data here
+    my $value = eval { decode_base64($node->{Value}) };
+    my $decoded = eval { decode_json($value) };
+
+    if (not defined $value or not defined $decoded) {
+        WARN "Found invalid node value for $node";
+        next;
+    }
     
     my $name = $decoded->{name};
     my $addr = $decoded->{address};
@@ -92,13 +116,11 @@ while($run) {
     next if $name eq $hostname;
     
     if (exists $mons{$name}) {
-      WARN "Already known mon $name";
+      INFO "Already known mon $name";
     }
     else {
-      INFO "ADD $name $addr\n";
-    
-      # Add node, in case
-      system("ceph mon add $decoded->{name} $decoded->{address}");
+      WARN "ADD $name $addr\n";
+      system("ceph --connect-timeout $ceph_timeout mon add $decoded->{name} $decoded->{address}");
     }
     
     delete $mons{$name};
@@ -106,6 +128,6 @@ while($run) {
   
   foreach my $node (sort keys %mons) {
     INFO "DEL $node\n";
-    system("ceph mon remove $node");
+    system("ceph --connect-timeout $ceph_timeout mon remove $node");
   }
 }
