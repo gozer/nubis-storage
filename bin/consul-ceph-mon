@@ -11,6 +11,7 @@ use MIME::Base64 qw(decode_base64);
 use Sys::Hostname qw(hostname);
 use Socket;
 use Data::Dumper;
+use List::Compare;
 
 my $ceph_timeout = 15;
 
@@ -55,6 +56,8 @@ if (!$register->is_success()) {
 
 my $run = 1;
 my $last_index = 0;
+my @last_known_mons;
+
 while($run) {
   my $list = $ua->get("$consul/v1/kv$path?recurse=1&index=$last_index");
   
@@ -66,35 +69,16 @@ while($run) {
     next;
   }
   
+  $last_index = $list->header("X-Consul-Index");
+
   my $data = eval { decode_json($list->content); };
   if ($@ || not defined $data) {
     WARN "Failed decoding JSON: $@";
     next;
   }
 
-  $last_index = $list->header("X-Consul-Index");
-  
+  my @mons;
   my %mons;
-  my $mon_dump = `ceph --connect-timeout $ceph_timeout -f json mon dump`;
-
-  if (0 != $?) {
-    WARN "Failed executing ceph mon dump: $? $!";
-    next;
-  }
-
-  my $mons = eval { decode_json($mon_dump); };
-  if ($@ or not defined $mons) {
-    WARN "Failed decoding JSON: $@";
-    next;
-  }
-  
-  foreach my $mon (@{$mons->{mons}}) {
-    # don't include ourselves
-    next if $mon->{name} eq $hostname;
-    $mons{$mon->{name}} = 1;
-  }
-  
-  INFO "Locally known mons are : " . join(",", sort keys %mons);
   
   foreach my $node (sort { $a->{'ModifyIndex'} <=> $b->{'ModifyIndex'} } @$data) {
     # Skip the mon/ node itself, it's just a placeholder
@@ -108,26 +92,42 @@ while($run) {
         WARN "Found invalid node value for $node";
         next;
     }
-    
+
     my $name = $decoded->{name};
     my $addr = $decoded->{address};
-    
-    # don't include ourselves, like, ever
-    next if $name eq $hostname;
-    
-    if (exists $mons{$name}) {
-      INFO "Already known mon $name";
-    }
-    else {
-      WARN "ADD $name $addr\n";
-      system("ceph --connect-timeout $ceph_timeout mon add $decoded->{name} $decoded->{address}");
-    }
-    
-    delete $mons{$name};
+    my $modify_index = $node->{ModifyIndex};
+
+    # We need to keep an ordered lists of just names, then the associated metadata
+    push @mons, $name;
+    $mons{$name} = {
+      addr => $addr,
+      lastmod => $modify_index,
+      $name eq $hostname ? ( self => 1 ) : (),
+    };
   }
-  
-  foreach my $node (sort keys %mons) {
-    INFO "DEL $node\n";
-    system("ceph --connect-timeout $ceph_timeout mon remove $node");
+
+  my $diff = List::Compare->new('--unsorted', \@mons, \@last_known_mons);
+
+  my @add = $diff->get_Lonly();
+  my @del = $diff->get_Ronly();
+
+  foreach my $node (@add) {
+    my $addr = $mons{$node}{addr};
+    WARN "ADD $node $addr\n";
+    my $rc = system("ceph --connect-timeout $ceph_timeout mon add $node $addr:6789") >> 8;
+    WARN "ADD rc=$rc" if $rc;
   }
+
+  foreach my $node (@del) {
+    my $addr = $mons{$node}{addr};
+    WARN "DEL $node $addr\n";
+    my $rc = system("ceph --connect-timeout $ceph_timeout mon remove $node") >> 8;
+    WARN "DEL rc=$rc" if $rc;
+  }
+
+  # keep track of what we know for the next pass
+  @last_known_mons = @mons;
+
+  # XXX: Would be nice to persist this to disk in case of crashes/restarts, however,
+  # XXX: All we risk doing is useless mon adds, and these are no-ops
 }
