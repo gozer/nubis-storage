@@ -7,7 +7,7 @@
     ],
     "project_description": "Nubis - Storage (ceph)",
     "project_name": "nubis-storage",
-    "project_version": "0.47",
+    "project_version": "0.48",
     "source_ami_project_name": "nubis-base"
   }
 }
