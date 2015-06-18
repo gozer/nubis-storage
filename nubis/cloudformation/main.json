@@ -202,7 +202,9 @@
             }
           }
         ],
-        "IamInstanceProfile": { "Ref": "BackupInstanceProfile" },
+        "IamInstanceProfile": {
+          "Ref": "BackupInstanceProfile"
+        },
         "UserData": {
           "Fn::Base64": {
             "Fn::Join": [
@@ -239,10 +241,10 @@
                 "\n",
                 "NUBIS_STORAGE_BUCKET=",
                 {
-                      "Fn::GetAtt": [
-                        "BackupBucketStack",
-                        "Outputs.S3Bucket"
-                      ]
+                  "Fn::GetAtt": [
+                    "BackupBucketStack",
+                    "Outputs.S3Bucket"
+                  ]
                 },
                 "\n"
               ]
@@ -266,7 +268,19 @@
             "Ref": "Environment"
           },
           "AccessControl": "Private",
-          "BucketName": { "Fn::Join": [ "-" , [ { "Ref": "StackName" }, "storage", "backup", "bucket" ] ] }
+          "BucketName": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Ref": "StackName"
+                },
+                "storage",
+                "backup",
+                "bucket"
+              ]
+            ]
+          }
         }
       }
     },
@@ -295,7 +309,18 @@
     "BackupRolePolicies": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
-        "PolicyName": { "Fn::Join": [ "-" , [ { "Ref": "StackName" }, "storage", "backup" ] ] },
+        "PolicyName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "StackName"
+              },
+              "storage",
+              "backup"
+            ]
+          ]
+        },
         "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
@@ -468,12 +493,12 @@
     }
   },
   "Outputs": {
- "BackupBucket": {
+    "BackupBucket": {
       "Description": "Consul: config/ Backup Bucket Name",
       "Value": {
         "Fn::GetAtt": [
-                        "BackupBucketStack",
-                        "Outputs.S3Bucket"
+          "BackupBucketStack",
+          "Outputs.S3Bucket"
         ]
       }
     }
