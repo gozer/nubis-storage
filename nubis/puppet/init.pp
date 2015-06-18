@@ -24,3 +24,18 @@ package { 'liblwp-useragent-determined-perl':
 package { 'liblog-log4perl-perl':
   ensure => present,
 }
+
+package { 'liblist-compare-perl':
+  ensure => present,
+}
+
+package {'awscli':
+  ensure => present,
+}
+
+file {'/usr/local/bin/ceph-s3-backup':
+  source => "puppet:///nubis/files/ceph-s3-backup",
+  owner => "root",
+  group => "root",
+  mode  => "0755",
+}
