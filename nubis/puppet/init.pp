@@ -1,5 +1,6 @@
 import "ceph.pp"
 import "fluentd.pp"
+import "backup.pp"
 
 class { 'ceph::repo':
 }
@@ -22,5 +23,9 @@ package { 'liblwp-useragent-determined-perl':
 }
 
 package { 'liblog-log4perl-perl':
+  ensure => present,
+}
+
+package { 'liblist-compare-perl':
   ensure => present,
 }
