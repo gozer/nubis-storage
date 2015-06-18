@@ -167,6 +167,6 @@ cat << EOF > /etc/cron.d/ceph-mon-restart
 MAILTO=gozer@mozilla.com
 
 # Job Definition
-* * * * *  root service ceph status mon || service ceph start mon
+* * * * *  root service ceph status mon > /dev/null || service ceph start mon
 EOF
 
