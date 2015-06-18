@@ -18,7 +18,7 @@ fluentd::source { 'ceph-daemons':
 fluentd::source { 'ceph-activity':
   configfile => 'ceph',
   type       => 'tail',
-  format     => '/^(?<time>[^ ]* [^ ]*) (?<ident>[^ ]*) (?<host>[^ ]*) (?<offset>[^ ]*) : \[(?<level>[^ ]*)\] (?<message>.*)$/',
+  format     => '/^(?<time>[^ ]* [^ ]*) (?<ident>[^ ]*) (?<host>[^ ]*) (?<offset>[^ ]*) : cluster \[(?<level>[^ ]*)\] (?<message>.*)$/',
   time_format => '%Y-%m-%d %H:%M:%S',
   tag        => 'forward.ceph.activity',
   config     => {
