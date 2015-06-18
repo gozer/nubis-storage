@@ -9,7 +9,7 @@ file { '/usr/local/bin/ceph-s3-backup':
   mode  => "0755",
 }
 
-cron::hourly { 'ceph_backup_daily':
+cron::hourly { 'ceph_backup':
     minute  => '40',
     user    => 'root',
     command => '/usr/local/bin/ceph-s3-backup',

@@ -152,3 +152,21 @@ cat << EOF > /etc/cron.hourly/ceph-osd-reap
 EOF
 
 chmod +x /etc/cron.hourly/ceph-osd-reap
+
+# XXX: Temporary work-around for issue #21
+# XXX: Just make sure we restart ceph-mon if it ever
+# XXX: comits suicide because of monmap exlusions
+# 
+# XXX: And we do this here because we don't want this to kick
+# XXX: while we are still busy bootstrapping
+
+cat << EOF > /etc/cron.d/ceph-mon-restart
+## ceph_backup_daily Cron Job
+
+# Environment Settings
+MAILTO=gozer@mozilla.com
+
+# Job Definition
+* * * * *  root service ceph status mon || service ceph start mon
+EOF
+
