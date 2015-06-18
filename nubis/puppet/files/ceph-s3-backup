@@ -22,6 +22,6 @@ trap ceph_unmount INT EXIT
 
 mkdir -p /tmp/ceph
 
-mount -t ceph -oro ceph-fsid-$CEPH_FSID.ceph-mon.service.consul:/ /tmp/ceph verbose || exit
+mount -t ceph -oro ceph-fsid-$CEPH_FSID.ceph-mon.service.consul:/ /tmp/ceph || exit
 
 aws --region $REGION s3 sync /tmp/ceph/ s3://$NUBIS_STORAGE_BUCKET/ --delete
