@@ -1,5 +1,17 @@
 # Change Log
 
+## [v0.48](https://github.com/nubisproject/nubis-storage/tree/v0.48) (2015-06-18)
+
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.47...v0.48)
+
+**Merged pull requests:**
+
+- build v0.48 [\#24](https://github.com/Nubisproject/nubis-storage/pull/24) ([gozer](https://github.com/gozer))
+
+- Bug: Try and ensure ceph-mon keeps on running [\#23](https://github.com/Nubisproject/nubis-storage/pull/23) ([gozer](https://github.com/gozer))
+
+- Fix silly tyop [\#22](https://github.com/Nubisproject/nubis-storage/pull/22) ([gozer](https://github.com/gozer))
+
 ## [v0.47](https://github.com/nubisproject/nubis-storage/tree/v0.47) (2015-06-18)
 
 **Implemented enhancements:**
