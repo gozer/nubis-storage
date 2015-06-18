@@ -12,7 +12,7 @@ file { '/usr/local/bin/ceph-s3-backup':
 cron::hourly { 'ceph_backup':
     minute  => '40',
     user    => 'root',
-    command => '/usr/local/bin/ceph-s3-backup',
+    command => '/usr/local/bin/ceph-s3-backup | tee -a /var/log/ceph-s3-backup.log',
     environment => "MAILTO=gozer@mozilla.com",
     require => File["/usr/local/bin/ceph-s3-backup"],
 }
