@@ -9,9 +9,8 @@ file { '/usr/local/bin/ceph-s3-backup':
   mode  => "0755",
 }
 
-cron::daily { 'ceph_backup_daily':
+cron::hourly { 'ceph_backup_daily':
     minute  => '40',
-    hour    => '2',
     user    => 'root',
     command => '/usr/local/bin/ceph-s3-backup',
     environment => "MAILTO=gozer@mozilla.com",

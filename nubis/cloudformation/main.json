@@ -71,10 +71,10 @@
   "Mappings": {
     "AMIs": {
       "us-west-2": {
-        "AMI": "ami-0d36083d"
+        "AMI": "ami-7f9ea44f"
       },
       "us-east-1": {
-        "AMI": "ami-9f8d60f4"
+        "AMI": "ami-4560922e"
       }
     }
   },
@@ -268,6 +268,7 @@
             "Ref": "Environment"
           },
           "AccessControl": "Private",
+          "VersioningConfiguration": "Enabled",
           "BucketName": {
             "Fn::Join": [
               "-",
