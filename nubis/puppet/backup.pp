@@ -15,5 +15,5 @@ cron::daily { 'ceph_backup_daily':
     user    => 'root',
     command => '/usr/local/bin/ceph-s3-backup',
     environment => "MAILTO=gozer@mozilla.com",
-    require => File[/usr/local/bin/ceph-s3-backup],
+    require => File["/usr/local/bin/ceph-s3-backup"],
 }
