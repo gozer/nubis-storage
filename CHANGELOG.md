@@ -1,5 +1,31 @@
 # Change Log
 
+## [v0.51](https://github.com/nubisproject/nubis-storage/tree/v0.51) (2015-06-18)
+
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.50...v0.51)
+
+**Merged pull requests:**
+
+- make sure to set PATH correctly for cron jobs [\#31](https://github.com/Nubisproject/nubis-storage/pull/31) ([gozer](https://github.com/gozer))
+
+- rebuild against newest nubis-base [\#30](https://github.com/Nubisproject/nubis-storage/pull/30) ([gozer](https://github.com/gozer))
+
+## [v0.50](https://github.com/nubisproject/nubis-storage/tree/v0.50) (2015-06-18)
+
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.48...v0.50)
+
+**Merged pull requests:**
+
+- verbose-- [\#29](https://github.com/Nubisproject/nubis-storage/pull/29) ([gozer](https://github.com/gozer))
+
+- Log backup status [\#28](https://github.com/Nubisproject/nubis-storage/pull/28) ([gozer](https://github.com/gozer))
+
+- Verbose-- [\#27](https://github.com/Nubisproject/nubis-storage/pull/27) ([gozer](https://github.com/gozer))
+
+- Fix fluentd format for ceph.conf [\#26](https://github.com/Nubisproject/nubis-storage/pull/26) ([gozer](https://github.com/gozer))
+
+- Try some auto-generated changelogs [\#25](https://github.com/Nubisproject/nubis-storage/pull/25) ([gozer](https://github.com/gozer))
+
 ## [v0.48](https://github.com/nubisproject/nubis-storage/tree/v0.48) (2015-06-18)
 
 [Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.47...v0.48)
