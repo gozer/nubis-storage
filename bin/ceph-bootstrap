@@ -148,7 +148,7 @@ service consul reload
 cat << EOF > /etc/cron.hourly/ceph-osd-reap
 #!/usr/bin/env bash
 
-/usr/local/bin/consul-do $NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/osd-reap $INSTANCE_ID && /usr/local/bin/ceph-osd-reaper
+/usr/local/bin/consul-do $NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/osd-reap $INSTANCE_ID && /usr/local/bin/ceph-osd-reaper || true
 EOF
 
 chmod +x /etc/cron.hourly/ceph-osd-reap
