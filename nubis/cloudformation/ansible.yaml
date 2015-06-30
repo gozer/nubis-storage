@@ -24,7 +24,7 @@
       template_parameters:
         ServiceName: "{{ project }}"
         StackName: "{{project}}-storage"
-        KeyName: "{{ key }}"
+        SSHKeyName: "{{ key }}"
         InstanceType: "{{ instance_type }}"
         TechnicalOwner: "{{ owner }}"
         VolumeSize: "{{ size }}"
