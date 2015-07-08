@@ -29,6 +29,11 @@
       "Description": "Name of and existing EC2 KeyPair to enable SSH access to the instance",
       "Type": "String"
     },
+    "StacksVersion": {
+      "Description": "Version of the Nubis Stacks",
+      "Type": "String",
+      "Default": "master"
+    },
     "InstanceType": {
       "Description": "Softnas HVM EC2 instance type",
       "Type": "String",
@@ -256,7 +261,7 @@
     "BackupBucketStack": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
-        "TemplateURL": "https://s3.amazonaws.com/nubisproject-stacks/master/s3-bucket.template",
+        "TemplateURL": { "Fn::Join": [ "/", [ "https://s3.amazonaws.com/nubisproject-stacks", { "Ref": "StacksVersion" }, "s3-bucket.template" ] ] },
         "Parameters": {
           "ServiceName": {
             "Ref": "ServiceName"
