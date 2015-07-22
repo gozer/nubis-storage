@@ -1,6 +1,22 @@
 # Change Log
 
-## [v0.51](https://github.com/nubisproject/nubis-storage/tree/v0.51) (2015-06-18)
+## [v0.9.0](https://github.com/nubisproject/nubis-storage/tree/v0.9.0) (2015-07-22)
+
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.51...v0.9.0)
+
+**Merged pull requests:**
+
+- use v0.9.0 stacks [\#38](https://github.com/Nubisproject/nubis-storage/pull/38) ([gozer](https://github.com/gozer))
+
+- Add StacksVersion argument, helps along nubisproject/nubis-stacks\#41 [\#37](https://github.com/Nubisproject/nubis-storage/pull/37) ([gozer](https://github.com/gozer))
+
+- Rename KeyName to SSHKeyName, for nubisproject/nubis-docs\#35 [\#36](https://github.com/Nubisproject/nubis-storage/pull/36) ([gozer](https://github.com/gozer))
+
+- Just decreasing verbosity a little on the S3 Backups [\#34](https://github.com/Nubisproject/nubis-storage/pull/34) ([gozer](https://github.com/gozer))
+
+- v0.51 [\#32](https://github.com/Nubisproject/nubis-storage/pull/32) ([gozer](https://github.com/gozer))
+
+## [v0.51](https://github.com/nubisproject/nubis-storage/tree/v0.51) (2015-06-19)
 
 [Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.50...v0.51)
 
