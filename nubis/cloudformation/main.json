@@ -216,6 +216,13 @@
               "",
               [
                 "NUBIS_DOMAIN=nubis.allizom.org\n",
+                "NUBIS_ACCOUNT=",
+                {
+                  "Fn::GetAtt": [
+                    "VpcInfo",
+                    "ServiceName"
+                  ]
+                },
                 "NUBIS_ENVIRONMENT=",
                 {
                   "Ref": "Environment"
