@@ -1,10 +1,24 @@
 # Change Log
 
+## [v1.0.0](https://github.com/nubisproject/nubis-storage/tree/v1.0.0) (2015-08-31)
+
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.9.0...v1.0.0)
+
+**Closed issues:**
+
+- Need to provide NUBIS\_ACCOUNT for new-style Consul in one-app-per-account [\#42](https://github.com/Nubisproject/nubis-storage/issues/42)
+
 ## [v0.9.0](https://github.com/nubisproject/nubis-storage/tree/v0.9.0) (2015-07-22)
 
 [Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.51...v0.9.0)
 
+**Implemented enhancements:**
+
+- Backups to an S3 bucket [\#13](https://github.com/Nubisproject/nubis-storage/issues/13)
+
 **Merged pull requests:**
+
+- Updating changelog for v0.9.0 release [\#39](https://github.com/Nubisproject/nubis-storage/pull/39) ([gozer](https://github.com/gozer))
 
 - use v0.9.0 stacks [\#38](https://github.com/Nubisproject/nubis-storage/pull/38) ([gozer](https://github.com/gozer))
 
@@ -55,10 +69,6 @@
 - Fix silly tyop [\#22](https://github.com/Nubisproject/nubis-storage/pull/22) ([gozer](https://github.com/gozer))
 
 ## [v0.47](https://github.com/nubisproject/nubis-storage/tree/v0.47) (2015-06-18)
-
-**Implemented enhancements:**
-
-- Backups to an S3 bucket [\#13](https://github.com/Nubisproject/nubis-storage/issues/13)
 
 **Merged pull requests:**
 
