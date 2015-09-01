@@ -279,6 +279,7 @@
                     "Outputs.S3Bucket"
                   ]
                 },
+                "\n",
                 "NUBIS_ACCOUNT=",
                 {
                   "Fn::GetAtt": [
@@ -318,7 +319,19 @@
                 },
                 "storage",
                 "backup",
-                "bucket"
+                "bucket",
+                {
+                  "Fn::GetAtt": [
+                    "VpcInfo",
+                    "ServiceName"
+                  ]
+                },
+                {
+                  "Ref": "Environment"
+                },
+                {
+                "Ref": "AWS::Region"
+                }
               ]
             ]
           }
