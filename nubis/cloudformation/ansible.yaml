@@ -3,8 +3,8 @@
   connection: local
   gather_facts: False
   vars:
-    region: "us-west-2"
-    env: "sandbox"
+    region: "us-east-1"
+    env: "stage"
     instance_type: "m3.medium"
     size: "80"
     cluster_size: "3"
@@ -23,6 +23,7 @@
       template: "main.json"
       template_parameters:
         ServiceName: "{{ project }}"
+        Environment: "{{ env }}"
         StackName: "{{project}}-storage"
         SSHKeyName: "{{ key }}"
         InstanceType: "{{ instance_type }}"
