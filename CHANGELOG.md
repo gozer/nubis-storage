@@ -8,6 +8,8 @@
 
 - Need to provide NUBIS\_ACCOUNT for new-style Consul in one-app-per-account [\#42](https://github.com/Nubisproject/nubis-storage/issues/42)
 
+- Tag v1.0.0 release [\#41](https://github.com/Nubisproject/nubis-storage/issues/41)
+
 ## [v0.9.0](https://github.com/nubisproject/nubis-storage/tree/v0.9.0) (2015-07-22)
 
 [Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v0.51...v0.9.0)
