@@ -116,6 +116,7 @@
     "VpcInfo": {
       "Type": "Custom::VpcInfo",
       "Properties": {
+        "StacksVersion": { "Ref": "StacksVersion" },
         "ServiceToken": {
           "Fn::Join": [
             "",
@@ -298,7 +299,7 @@
     "BackupBucketStack": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
-        "TemplateURL": { "Fn::Join": [ "/", [ "https://s3.amazonaws.com/nubisproject-stacks", { "Ref": "StacksVersion" }, "s3-bucket.template" ] ] },
+        "TemplateURL": { "Fn::Join": [ "/", [ "https://s3.amazonaws.com/nubis-stacks", { "Ref": "StacksVersion" }, "s3-bucket.template" ] ] },
         "Parameters": {
           "ServiceName": {
             "Ref": "ServiceName"
@@ -320,7 +321,6 @@
                 },
                 "storage",
                 "backup",
-                "bucket",
                 {
                   "Fn::GetAtt": [
                     "VpcInfo",
