@@ -218,6 +218,12 @@
               "VpcInfo",
               "SharedServicesSecurityGroupId"
             ]
+          },
+          {
+            "Fn::GetAtt": [
+              "VpcInfo",
+              "SshSecurityGroupId"
+            ]
           }
         ],
         "InstanceType": {
