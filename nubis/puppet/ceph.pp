@@ -1,6 +1,6 @@
 class ceph::repo (
   $ensure  = present,
-  $release = 'giant',
+  $release = 'hammer',
   $extras  = false,
   $fastcgi = false,
 ) {
@@ -10,7 +10,7 @@ class ceph::repo (
 
       apt::key { 'ceph':
         ensure     => $ensure,
-        key        => '7F6C9F236D170493FCF404F27EBFDD5D17ED316D',
+        key        => '08B73419AC32B4E966C1A330E84AC2C0460F3994',
         key_source => 'http://git.ceph.com/?p=ceph.git;a=blob_plain;f=keys/release.asc',
       }
 
