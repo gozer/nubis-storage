@@ -29,3 +29,15 @@ package { 'liblog-log4perl-perl':
 package { 'liblist-compare-perl':
   ensure => present,
 }
+
+class { 'python':
+  version => 'system',
+  pip => true,
+  dev => true,
+}
+
+python::pip { 'aws-cfn-bootstrap':
+  ensure => 'present',
+  require => Class['python'],
+  url => "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz",
+}
