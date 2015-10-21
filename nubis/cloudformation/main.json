@@ -318,6 +318,9 @@
                     "ServiceName"
                   ]
                 },
+                "\n",
+                "NUBIS_STORAGE_STACK_NAME=",
+                { "Ref": "AWS::StackName" },
                 "\n"
               ]
             ]
@@ -403,8 +406,8 @@
         "AutoScalingRollingUpdate": {
           "MinInstancesInService": "1",
           "MaxBatchSize": "1",
-          "WaitOnResourceSignals": "false",
-          "PauseTime": "PT15M"
+          "WaitOnResourceSignals": "true",
+          "PauseTime": "PT60M"
         }
       },
       "Properties": {
