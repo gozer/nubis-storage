@@ -82,8 +82,7 @@
         "d2.8xlarge",
         "g2.2xlarge",
         "g2.8xlarge"
-      ],
-      "NoEcho": "true"
+      ]
     },
     "VolumeSize": {
       "Description": "Size in GB of the volume",
