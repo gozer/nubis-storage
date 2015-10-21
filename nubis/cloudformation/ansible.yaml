@@ -8,6 +8,7 @@
     instance_type: "m3.medium"
     size: "80"
     cluster_size: "3"
+    stacks_version: "v1.0.0"
   vars_prompt:
     project: "Project name"
     key: "Name of the ssh key to use"
@@ -22,6 +23,7 @@
       disable_rollback: true
       template: "main.json"
       template_parameters:
+        StacksVersion: "{{ stacks_version }}"
         ServiceName: "{{ project }}"
         Environment: "{{ env }}"
         StackName: "{{project}}-storage"
