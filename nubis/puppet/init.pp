@@ -39,7 +39,7 @@ class { 'python':
 python::pip { 'aws-cfn-bootstrap':
   ensure => 'present',
   require => Class['python'],
-  url => "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz",
+  url => "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-1.4-8.tar.gz",
 }
 
 file { '/usr/local/bin/nubis-ceph-bootstrap-mon':
