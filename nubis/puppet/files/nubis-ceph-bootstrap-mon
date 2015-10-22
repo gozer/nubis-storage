@@ -50,6 +50,7 @@ osd pool default min size = 2 # Allow writing n copy in a degraded state.
 
 mon host = $LOCAL_IP
 mon data = /mnt/ceph/mon/\$cluster-\$id
+mon clock drift allowed = 0.1
 
 [mon.$INSTANCE_ID]
   host = $LOCAL_HOSTNAME
@@ -59,6 +60,11 @@ mon data = /mnt/ceph/mon/\$cluster-\$id
 EOF
 
 ceph-mon -i $INSTANCE_ID --mkfs
+
+# Try and kick our time syncing into gear
+service ntp stop
+ntpdate pool.ntp.org
+service ntp start
 
 service ceph start mon
 
