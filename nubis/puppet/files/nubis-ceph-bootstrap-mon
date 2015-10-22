@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+
+DONE=/var/run/lock/$0.done
+
+if [ -f "$DONE" ]; then
+  exit
+fi
+
+eval `curl -fq http://169.254.169.254/latest/user-data`
+
+export PATH=/usr/local/bin:$PATH
+
+CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/fsid uuidgen`
+
+# Re-exec ourselves under a Consul lock, ensure seriability across the whole cluster
+if [ "$CONSUL_LOCK_REEXEC" != "true" ]; then
+  CONSUL_LOCK_REEXEC="true" exec consul lock $NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/mon $0 $*
+fi
+
+if [ "$CONSUL_LOCK_HELD" != "true" ]; then
+  echo "Consul lock *NOT* held, bailing out!"
+  exit 1
+fi
+
+# At this point, we can safely assume we are holding the lock
+# XXX: One caveat, we might not complete, releasing the lock for someone else to grab
+
+mkfs.xfs -f /dev/xvdk
+mount /dev/xvdk /var/lib/ceph
+mkdir -p /mnt/ceph/mon /var/lib/ceph/osd
+
+LOCAL_IP=`curl -fq http://169.254.169.254/latest/meta-data/local-ipv4`
+LOCAL_HOSTNAME=`hostname -s`
+INSTANCE_ID=`curl -fq http://169.254.169.254/latest/meta-data/instance-id`
+REGION=`curl -fq http://169.254.169.254/latest/dynamic/instance-identity/document | jq '.region' -r`
+
+cat << EOF > /etc/ceph/ceph.conf
+[global]
+fsid = $CEPH_FSID
+
+auth cluster required = none
+auth service required = none
+auth client required = none
+
+osd pool default pg num = 256
+osd pool default pgp num = 256
+
+osd pool default size = 3     # Write an object n times.
+osd pool default min size = 2 # Allow writing n copy in a degraded state.
+
+mon host = $LOCAL_IP
+mon data = /mnt/ceph/mon/\$cluster-\$id
+
+[mon.$INSTANCE_ID]
+  host = $LOCAL_HOSTNAME
+
+[mds.$INSTANCE_ID]
+  host = $LOCAL_HOSTNAME
+EOF
+
+ceph-mon -i $INSTANCE_ID --mkfs
+
+service ceph start mon
+
+cat << EOF > /etc/consul/svc-ceph.json
+{
+  "service": {
+    "name": "ceph",
+    "tags": ["ceph","ceph-fsid-$CEPH_FSID"],
+
+    "check": {
+      "script": "ceph status",
+      "interval": "60s"
+    }
+  }
+}
+
+EOF
+
+cat << EOF > /etc/consul/svc-ceph-mon.json
+{
+  "service": {
+    "name": "ceph-mon",
+    "tags": ["ceph-mon","ceph-fsid-$CEPH_FSID", "ceph-storage-$NUBIS_STACK" ],
+    "port": 6789,
+    "check": {
+      "script": "ceph mon dump",
+      "interval": "60s"
+    }
+  }
+}
+
+EOF
+
+cat << EOF > /etc/consul/svc-ceph-mds.json
+{
+  "service": {
+    "name": "ceph-mds",
+    "tags": ["ceph-mds","ceph-fsid-$CEPH_FSID"],
+    "check": {
+      "script": "ceph mds dump",
+      "interval": "60s"
+    }
+  }
+}
+
+EOF
+
+ceph osd pool create cephfs_data 64
+ceph osd pool create cephfs_metadata 64
+ceph fs new cephfs cephfs_metadata cephfs_data
+
+cat << EOF > /etc/init/consul-ceph-mon.conf
+description     "Consul Ceph Monitor"
+respawn
+
+script
+    exec /usr/local/bin/consul-ceph-mon /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/mon
+end script
+EOF
+
+service consul reload
+service consul-ceph-mon start
+
+touch $DONE
