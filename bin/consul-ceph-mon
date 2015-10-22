@@ -120,9 +120,19 @@ while($run) {
 
   foreach my $node (@del) {
     my $addr = $mons{$node}{addr};
+    if ($node eq $hostname) {
+      WARN "DEL wanted to commit suicide, no we dont";
+      next;
+    }
     WARN "DEL $node $addr\n";
     my $rc = system("ceph --connect-timeout $ceph_timeout mon remove $node") >> 8;
     WARN "DEL rc=$rc" if $rc;
+  }
+
+  # Forcibly get rid of now dead OSDs
+  if (@del) {
+    WARN "Kicking OSD reaper now";
+    system("/usr/local/bin/ceph-osd-reaper");
   }
 
   # keep track of what we know for the next pass

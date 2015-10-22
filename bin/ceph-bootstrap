@@ -1,103 +1,12 @@
 #!/usr/bin/env bash
 
+export PATH=/usr/local/bin:$PATH
+
 eval `curl -fq http://169.254.169.254/latest/user-data`
+REGION=`curl -sfq http://169.254.169.254/latest/dynamic/instance-identity/document | jq '.region' -r`
 
-CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/fsid uuidgen`
-
-mkfs.xfs -f /dev/xvdk
-mount /dev/xvdk /var/lib/ceph
-mkdir -p /mnt/ceph/mon /var/lib/ceph/osd
-
-LOCAL_IP=`curl -fq http://169.254.169.254/latest/meta-data/local-ipv4`
-LOCAL_HOSTNAME=`hostname -s`
-INSTANCE_ID=`curl -fq http://169.254.169.254/latest/meta-data/instance-id`
-
-cat << EOF > /etc/ceph/ceph.conf
-[global]
-fsid = $CEPH_FSID
-
-auth cluster required = none
-auth service required = none
-auth client required = none
-
-osd pool default pg num = 256
-osd pool default pgp num = 256
-
-osd pool default size = 3     # Write an object n times.
-osd pool default min size = 2 # Allow writing n copy in a degraded state.
-
-mon host = $LOCAL_IP
-mon data = /mnt/ceph/mon/\$cluster-\$id
-
-[mon.$INSTANCE_ID]
-  host = $LOCAL_HOSTNAME
-
-[mds.$INSTANCE_ID]
-  host = $LOCAL_HOSTNAME
-EOF
-
-ceph-mon -i $INSTANCE_ID --mkfs
-
-service ceph start mon
-
-cat << EOF > /etc/consul/svc-ceph.json
-{
-  "service": {
-    "name": "ceph",
-    "tags": ["ceph","ceph-fsid-$CEPH_FSID"],
-
-    "check": {
-      "script": "ceph status",
-      "interval": "60s"
-    }
-  }
-}
-
-EOF
-
-cat << EOF > /etc/consul/svc-ceph-mon.json
-{
-  "service": {
-    "name": "ceph-mon",
-    "tags": ["ceph-mon","ceph-fsid-$CEPH_FSID", "ceph-storage-$NUBIS_STACK" ],
-    "port": 6789,
-    "check": {
-      "script": "ceph mon dump",
-      "interval": "60s"
-    }
-  }
-}
-
-EOF
-
-cat << EOF > /etc/consul/svc-ceph-mds.json
-{
-  "service": {
-    "name": "ceph-mds",
-    "tags": ["ceph-mds","ceph-fsid-$CEPH_FSID"],
-    "check": {
-      "script": "ceph mds dump",
-      "interval": "60s"
-    }
-  }
-}
-
-EOF
-
-ceph osd pool create cephfs_data 64
-ceph osd pool create cephfs_metadata 64
-ceph fs new cephfs cephfs_metadata cephfs_data
-
-cat << EOF > /etc/init/consul-ceph-mon.conf
-description     "Consul Ceph Monitor"
-respawn
-
-script
-    exec /usr/local/bin/consul-ceph-mon /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/mon
-end script
-EOF
-
-service consul-ceph-mon start
+# This starts our Ceph Monitor
+/usr/local/bin/nubis-ceph-bootstrap-mon
 
 # At this point, the cluster of monitors will start assembling, but we
 # need to wait until we've reached quorum before we proceed, otherwise
@@ -105,68 +14,29 @@ service consul-ceph-mon start
 # So, we wait until we see at least the same amount number of monitors
 # as we were configured with
 
-MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length' || echo -1`
+# Thinking about this, we should possibly just wait for positive quorom to be
+# verified, this might help handle the situation when we lose a node...
 
-while [ $MON_COUNT -lt $NUBIS_STORAGE_CLUSTER_SIZE ]; do
+MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length' || echo -1`
+while [ "${MON_COUNT:-0}" -lt "$NUBIS_STORAGE_CLUSTER_SIZE" ]; do
  MON_COUNT=`ceph mon dump -f json 2>/dev/null | jq '.mons | length' || echo -1`
  sleep 1
 done
 
-#XXX: Might want to use Consul to coordinate this and ensure 100%
-#XXX: correctness
+# Now start our Ceph OSD
+/usr/local/bin/nubis-ceph-bootstrap-osd
 
-while [ "$OSD_ID" = "" ]; do
-  sleep 1;
-  OSD_ID=`ceph osd create`
+echo "Waiting for cluster to report healthy"
+
+while [ "$CEPH_HEALTH" != "HEALTH_OK" ]; do
+  CEPH_HEALTH=$(ceph health)
+  echo "Health reported is : $CEPH_HEALTH"
+  if [ "$CEPH_HEALTH" != "HEALTH_OK" ]; then
+    sleep 30
+  fi
 done
 
-mkdir -p /var/lib/ceph/osd/ceph-$OSD_ID
-ceph-osd -i $OSD_ID --mkfs
-
-echo "[osd.$OSD_ID]" >> /etc/ceph/ceph.conf
-echo "    host = $LOCAL_HOSTNAME" >> /etc/ceph/ceph.conf
-
-service ceph start
-
-cat << EOF > /etc/consul/svc-ceph-osd.json
-{
-  "service": {
-    "name": "ceph-osd",
-    "tags": ["ceph-osd", "ceph-osd-$CEPH_FSID-$OSD_ID", "ceph-fsid-$CEPH_FSID"],
-    "check": {
-      "script": "ceph osd dump",
-      "interval": "60s"
-    }
-  }
-}
-EOF
-
-service consul reload
-
-# Install an hourly dead OSD reaper
-# XXX: This can be baked in, just need to lookup project and stuff
-cat << EOF > /etc/cron.hourly/ceph-osd-reap
-#!/usr/bin/env bash
-
-/usr/local/bin/consul-do $NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/osd-reap $INSTANCE_ID && /usr/local/bin/ceph-osd-reaper || true
-EOF
-
-chmod +x /etc/cron.hourly/ceph-osd-reap
-
-# XXX: Temporary work-around for issue #21
-# XXX: Just make sure we restart ceph-mon if it ever
-# XXX: comits suicide because of monmap exlusions
-# 
-# XXX: And we do this here because we don't want this to kick
-# XXX: while we are still busy bootstrapping
-
-cat << EOF > /etc/cron.d/ceph-mon-restart
-## ceph_backup_daily Cron Job
-
-# Environment Settings
-MAILTO=gozer@mozilla.com
-
-# Job Definition
-* * * * *  root service ceph status mon > /dev/null || service ceph start mon
-EOF
+# Signal completion to CloudFormation
+echo "Signaling CloudFormation stack $NUBIS_STORAGE_STACK_NAME we are done"
+cfn-signal --stack=$NUBIS_STORAGE_STACK_NAME --region=$REGION --resource=AutoScalingGroup
 

@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+DONE=/var/run/lock/$0.done
+
+if [ -f "$DONE" ]; then
+  exit
+fi
+
+eval `curl -fq http://169.254.169.254/latest/user-data`
+
+CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/fsid uuidgen`
+LOCAL_HOSTNAME=`hostname -s`
+INSTANCE_ID=`curl -fq http://169.254.169.254/latest/meta-data/instance-id`
+
+#XXX: Might want to use Consul to coordinate this and ensure 100%
+#XXX: correctness
+
+while [ "$OSD_ID" = "" ]; do
+  sleep 1;
+  OSD_ID=`ceph osd create`
+done
+
+mkdir -p /var/lib/ceph/osd/ceph-$OSD_ID
+ceph-osd -i $OSD_ID --mkfs
+
+echo "[osd.$OSD_ID]" >> /etc/ceph/ceph.conf
+echo "    host = $LOCAL_HOSTNAME" >> /etc/ceph/ceph.conf
+
+service ceph start
+
+cat << EOF > /etc/consul/svc-ceph-osd.json
+{
+  "service": {
+    "name": "ceph-osd",
+    "tags": ["ceph-osd", "ceph-osd-$CEPH_FSID-$OSD_ID", "ceph-fsid-$CEPH_FSID"],
+    "check": {
+      "script": "ceph osd dump",
+      "interval": "60s"
+    }
+  }
+}
+EOF
+
+service consul reload
+
+# Install an hourly dead OSD reaper
+# XXX: This can be baked in, just need to lookup project and stuff
+cat << EOF > /etc/cron.hourly/ceph-osd-reap
+#!/usr/bin/env bash
+
+/usr/local/bin/consul-do $NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/osd-reap $INSTANCE_ID && /usr/local/bin/ceph-osd-reaper || true
+EOF
+
+chmod +x /etc/cron.hourly/ceph-osd-reap
+
+# XXX: Temporary work-around for issue #21
+# XXX: Just make sure we restart ceph-mon if it ever
+# XXX: comits suicide because of monmap exlusions
+# 
+# XXX: And we do this here because we don't want this to kick
+# XXX: while we are still busy bootstrapping
+
+cat << EOF > /etc/cron.d/ceph-mon-restart
+## ceph_backup_daily Cron Job
+
+# Environment Settings
+MAILTO=gozer@mozilla.com
+
+# Job Definition
+* * * * *  root service ceph status mon > /dev/null || service ceph start mon
+EOF
+
+touch $DONE

@@ -82,8 +82,7 @@
         "d2.8xlarge",
         "g2.2xlarge",
         "g2.8xlarge"
-      ],
-      "NoEcho": "true"
+      ]
     },
     "VolumeSize": {
       "Description": "Size in GB of the volume",
@@ -105,10 +104,10 @@
   "Mappings": {
     "AMIs": {
       "us-west-2": {
-        "AMI": "ami-91dbcba1"
+        "AMI": "ami-72896b41"
       },
       "us-east-1": {
-        "AMI": "ami-eb54d080"
+        "AMI": "ami-058cd060"
       }
     }
   },
@@ -319,6 +318,9 @@
                     "ServiceName"
                   ]
                 },
+                "\n",
+                "NUBIS_STORAGE_STACK_NAME=",
+                { "Ref": "AWS::StackName" },
                 "\n"
               ]
             ]
@@ -404,8 +406,8 @@
         "AutoScalingRollingUpdate": {
           "MinInstancesInService": "1",
           "MaxBatchSize": "1",
-          "WaitOnResourceSignals": "false",
-          "PauseTime": "PT15M"
+          "WaitOnResourceSignals": "true",
+          "PauseTime": "PT60M"
         }
       },
       "Properties": {
