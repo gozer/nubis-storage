@@ -41,3 +41,18 @@ python::pip { 'aws-cfn-bootstrap':
   require => Class['python'],
   url => "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz",
 }
+
+file { '/usr/local/bin/nubis-ceph-bootstrap-mon':
+  source => "puppet:///nubis/files/nubis-ceph-bootstrap-mon",
+  owner => "root",
+  group => "root",
+  mode  => "0755",
+}
+
+file { '/usr/local/bin/nubis-ceph-bootstrap-osd':
+  source => "puppet:///nubis/files/nubis-ceph-bootstrap-osd",
+  owner => "root",
+  group => "root",
+  mode  => "0755",
+}
+
