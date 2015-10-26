@@ -455,6 +455,10 @@
                   {
                     "Ref": "ServiceName"
                   },
+                  ") (",
+                  {
+                    "Ref": "Environment"
+                  },
                   ")"
                 ]
               ]
