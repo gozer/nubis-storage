@@ -1,13 +1,12 @@
 {
   "variables": {
-    "automatic_version_bump": "1",
-    "automatic_version_verify": "1",
     "builders": [
       "amazon-ebs-ubuntu"
     ],
     "project_description": "Nubis - Storage (ceph)",
     "project_name": "nubis-storage",
-    "project_version": "0.56",
+    "project_version": "v1.0.2-dev",
+    "source_ami_project_version": "v1.0.2-dev",
     "source_ami_project_name": "nubis-base"
   }
 }
