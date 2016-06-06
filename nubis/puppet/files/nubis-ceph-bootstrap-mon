@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DONE=/var/run/lock/$0.done
+DONE=/var/run/lock/$(basename $0).done
 
 if [ -f "$DONE" ]; then
   exit
