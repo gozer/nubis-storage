@@ -1,5 +1,20 @@
 # Change Log
 
+## [v1.2.0](https://github.com/nubisproject/nubis-storage/tree/v1.2.0) (2016-07-07)
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v1.1.0...v1.2.0)
+
+**Closed issues:**
+
+- Fix pathname of DONE file marker [\#75](https://github.com/nubisproject/nubis-storage/issues/75)
+- Switch over to v1.2.0-dev train [\#74](https://github.com/nubisproject/nubis-storage/issues/74)
+
+**Merged pull requests:**
+
+- Update storage AMI Ids for v1.2.0 release [\#79](https://github.com/nubisproject/nubis-storage/pull/79) ([tinnightcap](https://github.com/tinnightcap))
+- Update builder artifacts for v1.2.0 release [\#78](https://github.com/nubisproject/nubis-storage/pull/78) ([tinnightcap](https://github.com/tinnightcap))
+- Switch over to v1.2.0-dev train [\#77](https://github.com/nubisproject/nubis-storage/pull/77) ([gozer](https://github.com/gozer))
+- Fix the path of the DONE files [\#76](https://github.com/nubisproject/nubis-storage/pull/76) ([gozer](https://github.com/gozer))
+
 ## [v1.1.0](https://github.com/nubisproject/nubis-storage/tree/v1.1.0) (2016-04-18)
 [Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v1.0.1...v1.1.0)
 
@@ -7,9 +22,11 @@
 
 - Switch over to v1.0.2-dev [\#69](https://github.com/nubisproject/nubis-storage/issues/69)
 - Tag v1.1.0 release [\#40](https://github.com/nubisproject/nubis-storage/issues/40)
+- Tag v1.1.0 release [\#67](https://github.com/nubisproject/nubis-storage/issues/67)
 
 **Merged pull requests:**
 
+- Update CHANGELOG for v1.1.0 release [\#73](https://github.com/nubisproject/nubis-storage/pull/73) ([tinnightcap](https://github.com/tinnightcap))
 - Update storage AMI Ids for v1.1.0 release [\#72](https://github.com/nubisproject/nubis-storage/pull/72) ([tinnightcap](https://github.com/tinnightcap))
 - Update builder artifacts for v1.1.0 release [\#71](https://github.com/nubisproject/nubis-storage/pull/71) ([tinnightcap](https://github.com/tinnightcap))
 - Switch over [\#70](https://github.com/nubisproject/nubis-storage/pull/70) ([gozer](https://github.com/gozer))
