@@ -1,15 +1,27 @@
 # Change Log
 
+## [v1.2.1](https://github.com/nubisproject/nubis-storage/tree/v1.2.1) (2016-07-30)
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v1.2.0...v1.2.1)
+
+**Merged pull requests:**
+
+- Update storage AMI Ids for v1.2.1 release [\#86](https://github.com/nubisproject/nubis-storage/pull/86) ([tinnightcap](https://github.com/tinnightcap))
+- Update builder artifacts for v1.2.1 release [\#85](https://github.com/nubisproject/nubis-storage/pull/85) ([tinnightcap](https://github.com/tinnightcap))
+- Update storage AMI Ids for v1.3.0-dev release [\#83](https://github.com/nubisproject/nubis-storage/pull/83) ([tinnightcap](https://github.com/tinnightcap))
+- Update builder artifacts for v1.3.0-dev release [\#82](https://github.com/nubisproject/nubis-storage/pull/82) ([tinnightcap](https://github.com/tinnightcap))
+
 ## [v1.2.0](https://github.com/nubisproject/nubis-storage/tree/v1.2.0) (2016-07-07)
 [Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v1.1.0...v1.2.0)
 
 **Closed issues:**
 
+- Tag v1.2.0 release [\#80](https://github.com/nubisproject/nubis-storage/issues/80)
 - Fix pathname of DONE file marker [\#75](https://github.com/nubisproject/nubis-storage/issues/75)
 - Switch over to v1.2.0-dev train [\#74](https://github.com/nubisproject/nubis-storage/issues/74)
 
 **Merged pull requests:**
 
+- Update CHANGELOG for v1.2.0 release [\#81](https://github.com/nubisproject/nubis-storage/pull/81) ([tinnightcap](https://github.com/tinnightcap))
 - Update storage AMI Ids for v1.2.0 release [\#79](https://github.com/nubisproject/nubis-storage/pull/79) ([tinnightcap](https://github.com/tinnightcap))
 - Update builder artifacts for v1.2.0 release [\#78](https://github.com/nubisproject/nubis-storage/pull/78) ([tinnightcap](https://github.com/tinnightcap))
 - Switch over to v1.2.0-dev train [\#77](https://github.com/nubisproject/nubis-storage/pull/77) ([gozer](https://github.com/gozer))
