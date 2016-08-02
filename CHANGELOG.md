@@ -1,10 +1,23 @@
 # Change Log
 
-## [v1.2.1](https://github.com/nubisproject/nubis-storage/tree/v1.2.1) (2016-07-30)
-[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v1.2.0...v1.2.1)
+## [v1.2.2](https://github.com/nubisproject/nubis-storage/tree/v1.2.2) (2016-08-02)
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v1.2.1...v1.2.2)
 
 **Merged pull requests:**
 
+- Update storage AMI Ids for v1.2.2 release [\#90](https://github.com/nubisproject/nubis-storage/pull/90) ([tinnightcap](https://github.com/tinnightcap))
+- Update builder artifacts for v1.2.2 release [\#89](https://github.com/nubisproject/nubis-storage/pull/89) ([tinnightcap](https://github.com/tinnightcap))
+
+## [v1.2.1](https://github.com/nubisproject/nubis-storage/tree/v1.2.1) (2016-07-30)
+[Full Changelog](https://github.com/nubisproject/nubis-storage/compare/v1.2.0...v1.2.1)
+
+**Closed issues:**
+
+- Tag v1.2.1 release [\#84](https://github.com/nubisproject/nubis-storage/issues/84)
+
+**Merged pull requests:**
+
+- Update CHANGELOG for v1.2.1 release [\#87](https://github.com/nubisproject/nubis-storage/pull/87) ([tinnightcap](https://github.com/tinnightcap))
 - Update storage AMI Ids for v1.2.1 release [\#86](https://github.com/nubisproject/nubis-storage/pull/86) ([tinnightcap](https://github.com/tinnightcap))
 - Update builder artifacts for v1.2.1 release [\#85](https://github.com/nubisproject/nubis-storage/pull/85) ([tinnightcap](https://github.com/tinnightcap))
 - Update storage AMI Ids for v1.3.0-dev release [\#83](https://github.com/nubisproject/nubis-storage/pull/83) ([tinnightcap](https://github.com/tinnightcap))
