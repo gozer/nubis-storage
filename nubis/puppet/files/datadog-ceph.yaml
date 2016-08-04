@@ -1,0 +1,5 @@
+init_config:
+
+instances:
+  - 
+    ceph_cmd: /usr/bin/ceph
