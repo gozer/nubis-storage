@@ -44,14 +44,14 @@ python::pip { 'aws-cfn-bootstrap':
 }
 
 file { '/usr/local/bin/nubis-ceph-bootstrap-mon':
-  source => 'puppet:///modules/nubis/files/nubis-ceph-bootstrap-mon',
+  source => 'puppet:///nubis/files/nubis-ceph-bootstrap-mon', #lint:ignore:puppet_url_without_modules
   owner  => 'root',
   group  => 'root',
   mode   => '0755',
 }
 
 file { '/usr/local/bin/nubis-ceph-bootstrap-osd':
-  source => 'puppet:///modules/nubis/files/nubis-ceph-bootstrap-osd',
+  source => 'puppet:///nubis/files/nubis-ceph-bootstrap-osd', #lint:ignore:puppet_url_without_modules
   owner  => 'root',
   group  => 'root',
   mode   => '0755',

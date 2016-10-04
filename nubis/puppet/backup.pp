@@ -3,7 +3,7 @@ package {'awscli':
 }
 
 file { '/usr/local/bin/ceph-s3-backup':
-  source => 'puppet:///modules/nubis/files/ceph-s3-backup',
+  source => 'puppet:///nubis/files/ceph-s3-backup', #lint:ignore:puppet_url_without_modules
   owner  => 'root',
   group  => 'root',
   mode   => '0755',
