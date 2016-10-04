@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
 
-DONE=/var/run/lock/$(basename $0).done
+DONE=/var/run/lock/$(basename "$0").done
 
 if [ -f "$DONE" ]; then
   exit
 fi
 
-eval `curl -fq http://169.254.169.254/latest/user-data`
+eval "$(curl -fq http://169.254.169.254/latest/user-data)"
 
-CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/fsid uuidgen`
-LOCAL_HOSTNAME=`hostname -s`
-INSTANCE_ID=`curl -fq http://169.254.169.254/latest/meta-data/instance-id`
+CEPH_FSID=$(/usr/local/bin/consul-get-or-set "/$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/fsid" uuidgen)
+LOCAL_HOSTNAME=$(hostname -s)
+INSTANCE_ID=$(curl -fq http://169.254.169.254/latest/meta-data/instance-id)
 
 #XXX: Might want to use Consul to coordinate this and ensure 100%
 #XXX: correctness
 
 while [ "$OSD_ID" = "" ]; do
   sleep 1;
-  OSD_ID=`ceph osd create`
+  OSD_ID=$(ceph osd create)
 done
 
-mkdir -p /var/lib/ceph/osd/ceph-$OSD_ID
-ceph-osd -i $OSD_ID --mkfs
+mkdir -p "/var/lib/ceph/osd/ceph-$OSD_ID"
+ceph-osd -i "$OSD_ID" --mkfs
 
 echo "[osd.$OSD_ID]" >> /etc/ceph/ceph.conf
 echo "    host = $LOCAL_HOSTNAME" >> /etc/ceph/ceph.conf
@@ -70,4 +70,4 @@ MAILTO=gozer@mozilla.com
 * * * * *  root service ceph status mon > /dev/null || service ceph start mon
 EOF
 
-touch $DONE
+touch "$DONE"

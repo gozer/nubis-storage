@@ -1,12 +1,13 @@
-import "ceph.pp"
-import "fluentd.pp"
-import "backup.pp"
+import 'ceph.pp'
+import 'fluentd.pp'
+import 'backup.pp'
+import 'datadog.pp'
 
 class { 'ceph::repo':
 }
 
 package { 'ceph':
-  ensure => latest,
+  ensure  => latest,
   require => Class['ceph::repo'],
 }
 
@@ -32,27 +33,27 @@ package { 'liblist-compare-perl':
 
 class { 'python':
   version => 'system',
-  pip => true,
-  dev => true,
+  pip     => true,
+  dev     => true,
 }
 
 python::pip { 'aws-cfn-bootstrap':
-  ensure => 'present',
+  ensure  => 'present',
   require => Class['python'],
-  url => "https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-1.4-8.tar.gz",
+  url     => 'https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-1.4-8.tar.gz',
 }
 
 file { '/usr/local/bin/nubis-ceph-bootstrap-mon':
-  source => "puppet:///nubis/files/nubis-ceph-bootstrap-mon",
-  owner => "root",
-  group => "root",
-  mode  => "0755",
+  source => 'puppet:///nubis/files/nubis-ceph-bootstrap-mon', #lint:ignore:puppet_url_without_modules
+  owner  => 'root',
+  group  => 'root',
+  mode   => '0755',
 }
 
 file { '/usr/local/bin/nubis-ceph-bootstrap-osd':
-  source => "puppet:///nubis/files/nubis-ceph-bootstrap-osd",
-  owner => "root",
-  group => "root",
-  mode  => "0755",
+  source => 'puppet:///nubis/files/nubis-ceph-bootstrap-osd', #lint:ignore:puppet_url_without_modules
+  owner  => 'root',
+  group  => 'root',
+  mode   => '0755',
 }
 
