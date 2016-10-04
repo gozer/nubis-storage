@@ -1,0 +1,19 @@
+language: ruby
+sudo: false
+gemfile: nubis/travis/Gemfile
+cache:
+  bundler: true
+  directories:
+  - "${HOME}/bin"
+  - nubis/librarian-puppet
+addons:
+  apt:
+    sources:
+    - debian-sid
+    packages:
+    - shellcheck
+script:
+- nubis/travis/run-checks
+notifications:
+  slack:
+    secure: N3ZZVLW1cDPKgqhmt7bmhwnzJK9Lzg83Dc1mlG/Kcp3jnUsvzoxsxKjd608exh+VUK+lJiLIAixtHZxJRp9lQhdKZIFyu2nZJuVHlN2vqidVZ4r9ZVKZB5aCKhJUe5rmY6JWjEFS3KjODyJyrE3zgoM4yRroZtdFrj3P0DOBOMkkwtqDZhthvZ/rx0gsjaHqZLHr7CQ5Nk+8M56kTVl8wqP3TpbyUKRT6/bOjdfbqfx26OHTfn9UhvWY6pOFz6FNnwEK7HMHGR860TorXSoW3FKDKWp4Kdqbq3o9xAbvHiQcpZfdj+GZPqP2RBWY9jHxDBxEZjm6z/2Hyxu+53oRxOCB0njUcdA3Ykqq6aI6n0waAue9BWRd6iglmgjstYw1NfUImdl0czj71wNDy25vQbHNGuyywpyTkwvSQAANBuuEfd/c9o/RIkacyodqi/Hsw6rrXxwDWmX9vXMnOUMT9tJJIbUReAMonmfl9uBFImYku7fjMlTH/SawupwZfR9zNRRYmEHJp6kVUz7LEBfbWckx0y1TR26kjKn0OhwXzCfmzZbUW+/EujGtqd6uAX08LtrxKljnIuGDmRVHPYki5pFNh5DMjzWBdSlLbiBfH1AX/a7n/2RwLdbApjjcdrDEdJ9wK36GMY545EhM0jpaZjmLQPjVg0HSUjm06eWQALE=
