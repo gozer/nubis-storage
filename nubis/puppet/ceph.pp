@@ -1,4 +1,4 @@
-class ceph::repo (
+class ceph::repo ( #lint:ignore:autoloader_layout lint:ignore:documentation This isnt a real class
   $ensure  = present,
   $release = 'hammer',
   $extras  = false,
@@ -137,7 +137,7 @@ class ceph::repo (
     }
 
     default: {
-      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only supports osfamily Debian and RedHat")
+      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only supports osfamily Debian and RedHat") #lint:ignore:140chars
     }
   }
 }
