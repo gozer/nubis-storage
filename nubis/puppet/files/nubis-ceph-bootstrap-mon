@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
-DONE=/var/run/lock/$(basename $0).done
+DONE=/var/run/lock/$(basename "$0").done
 
 if [ -f "$DONE" ]; then
   exit
 fi
 
-eval `curl -fq http://169.254.169.254/latest/user-data`
+eval "$(curl -fq http://169.254.169.254/latest/user-data)"
 
 export PATH=/usr/local/bin:$PATH
 
-CEPH_FSID=`/usr/local/bin/consul-get-or-set /$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/fsid uuidgen`
+CEPH_FSID=$(/usr/local/bin/consul-get-or-set "/$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/fsid" uuidgen)
 
 # Re-exec ourselves under a Consul lock, ensure seriability across the whole cluster
 if [ "$CONSUL_LOCK_REEXEC" != "true" ]; then
-  CONSUL_LOCK_REEXEC="true" exec consul lock $NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/mon $0 $*
+  CONSUL_LOCK_REEXEC="true" exec consul lock "$NUBIS_STACK/$NUBIS_ENVIRONMENT/storage/mon" "$0" "$@"
 fi
 
 if [ "$CONSUL_LOCK_HELD" != "true" ]; then
@@ -29,10 +29,9 @@ mkfs.xfs -f /dev/xvdk
 mount /dev/xvdk /var/lib/ceph
 mkdir -p /mnt/ceph/mon /var/lib/ceph/osd
 
-LOCAL_IP=`curl -fq http://169.254.169.254/latest/meta-data/local-ipv4`
-LOCAL_HOSTNAME=`hostname -s`
-INSTANCE_ID=`curl -fq http://169.254.169.254/latest/meta-data/instance-id`
-REGION=`curl -fq http://169.254.169.254/latest/dynamic/instance-identity/document | jq '.region' -r`
+LOCAL_IP=$(curl -fq http://169.254.169.254/latest/meta-data/local-ipv4)
+LOCAL_HOSTNAME=$(hostname -s)
+INSTANCE_ID=$(curl -fq http://169.254.169.254/latest/meta-data/instance-id)
 
 cat << EOF > /etc/ceph/ceph.conf
 [global]
@@ -59,7 +58,7 @@ mon clock drift allowed = 0.1
   host = $LOCAL_HOSTNAME
 EOF
 
-ceph-mon -i $INSTANCE_ID --mkfs
+ceph-mon -i "$INSTANCE_ID" --mkfs
 
 # Try and kick our time syncing into gear
 service ntp stop
@@ -128,4 +127,4 @@ EOF
 service consul reload
 service consul-ceph-mon start
 
-touch $DONE
+touch "$DONE"
